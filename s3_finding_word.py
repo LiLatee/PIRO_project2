@@ -32,7 +32,7 @@ def detect_lines_of_text(img):
     return img
             
 
-def detect_words_in_line(image_result, image_binary, coords_of_line, row_intensity=255):
+def detect_words_in_line(image_result, image_binary, coords_of_line, reference_point_to_img_raw, row_intensity=255):
     # wycinamy kawałek obrazu będącego linią tekstu i obracamy go (.T)
     line_img = get_slice_of_image_with_specific_coords(image=image_binary, coords=coords_of_line).T
     line_img = morphology.dilation(line_img, morphology.disk(13))
@@ -72,7 +72,7 @@ def detect_words_in_line(image_result, image_binary, coords_of_line, row_intensi
     # zamieniamy ten wycinek obrazu w całym obrazie
     first_point = coords_of_line[0]
     last_point = coords_of_line[-1]
-    image_result[first_point[0]:last_point[0]+1, first_point[1]:last_point[1]+1] = line_img
+    image_result[first_point[0]+reference_point_to_img_raw[0]:last_point[0]+reference_point_to_img_raw[0]+1, first_point[1]+reference_point_to_img_raw[1]:last_point[1]+reference_point_to_img_raw[1]+1] = line_img
                 
     return last_word_coords, image_result
 
@@ -119,13 +119,14 @@ def detect_fragments_with_words(img, img_raw, reference_point_to_img_raw, img_ou
 #     print("regions po usunięciu cienkich wierszy: ", len(regions))
     
     # Wynikowy obraz ma mieć czarne tło, a wyrazy w kolejnych wierszach mają mieć wartości 1,2,3...
-    image_result = np.zeros(img.shape, dtype=np.uint8)
+    image_result = np.zeros(img_raw.shape, dtype=np.uint8)
     last_words = []
     for i, region in enumerate(regions, 1):
         last_word_coords, image_result = detect_words_in_line(image_result=image_result, 
                                                image_binary=img, 
                                                coords_of_line=region.coords, 
-                                               row_intensity=((i*1)%256))
+                                               row_intensity=((i*1)%256),
+                                               reference_point_to_img_raw=reference_point_to_img_raw)
 
         last_word_coords = np.array([[el[0]+reference_point_to_img_raw[0],el[1]+reference_point_to_img_raw[1]] for el in last_word_coords])
         last_words.append(last_word_coords)

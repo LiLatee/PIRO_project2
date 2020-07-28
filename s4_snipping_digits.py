@@ -268,7 +268,9 @@ def cut_digits_from_index_image(last_word_images, img_name='test'):
 
         for index_digit, (start_point, end_point) in enumerate(rect_points_sorted_by_distance_to_start_of_horizontal_axis):           
             # Wycięcie cyfry
-            one_digit =  image_digits[:, start_point[1]:end_point[1]+1]
+            one_digit =  image_digits[start_point[0]:end_point[0]+1, start_point[1]:end_point[1]+1]
+            # one_digit =  image_digits[:, start_point[1]:end_point[1]+1]
+
             one_digit = scale_digit_image(one_digit, scale=28)
             index_digits_list.append(one_digit)
 
