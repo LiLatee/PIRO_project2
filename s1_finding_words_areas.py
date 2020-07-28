@@ -17,6 +17,7 @@ from skimage import io
 
 
 
+
 def get_words_from_base_img(img):
     
     kernel = np.ones((8,8),np.uint8)

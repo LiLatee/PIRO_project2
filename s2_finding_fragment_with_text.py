@@ -6,6 +6,7 @@ import numpy as np
 from pathlib import Path
 from skimage import io
 from skimage import util
+from matplotlib import pyplot as plt
 
 
 def remove_outliers_centroids(data, quantile_height=0.9, quantile_width=0.9):
@@ -37,41 +38,46 @@ def remove_background_on_left_side(img):
     bias = 0.2 # 0.07 bez roziągania histogramu
     was_action = True 
 
+    cnt = 0
     for el in range(0, len(img.T), step):
         if np.mean(img[:,el:el+step]) < mean_value_in_img-bias:
 #             img[:,el:el+step] = mean_value_in_img
             img = img[:,el+step:]
             was_action = True
+            cnt += 1
         else:
             was_action = False
         
         if not was_action:
 #             img[:,el:el+step] = mean_value_in_img
             img = img[:,el+int(step/2):]
+            cnt += 1
             break
-            
-    return img
+    
+    removed_pixels = step*cnt
+    return img, removed_pixels
 
 def remove_background(img):
     # usuwa z lewej
-    img = remove_background_on_left_side(img)
+    img, removed_pixels_left = remove_background_on_left_side(img)
     
     # usuwa z prawej
     img = transform.rotate(img, 180)
-    img = remove_background_on_left_side(img)
+    img, _ = remove_background_on_left_side(img)
 
     # usuwa z dołu
     img = img.T
-    img = remove_background_on_left_side(img)
+    img, _ = remove_background_on_left_side(img)
 
     # usuwa z góry
     img = transform.rotate(img, 180)
-    img = remove_background_on_left_side(img)
+    img, removed_pixels_top = remove_background_on_left_side(img)
 
     # wraca do oryginalnej postaci
     img = img.T
     
-    return img
+    reference = (removed_pixels_top, removed_pixels_left)
+    return img, reference
 
 
 def detect_fragment_with_text(img, img_raw, img_name="test"):
@@ -114,16 +120,13 @@ def detect_fragment_with_text(img, img_raw, img_name="test"):
     img_slice = img_raw[start_point_height:end_point_height, start_point_width:end_point_width]
     
     # Na wycinkach nadal czasami pojawia się stół. Więc usuwamy te fragmenty.
-    p2, p98 = np.percentile(img_slice, (2, 98))
-    img_slice = exposure.rescale_intensity(img_slice, in_range=(p2, p98))
+    # p2, p98 = np.percentile(img_slice, (2, 98))
+    # img_slice = exposure.rescale_intensity(img_slice, in_range=(p2, p98))
 
-    shape_before = np.array(img_slice.shape)
-    img_removed_background = remove_background(img_slice)
-    shape_after = np.array(img_removed_background.shape)
-    shape_diff = (shape_before-shape_after)
 
-    reference_point_to_img_raw = np.array([start_point_height, start_point_width]) + shape_diff
-
+    # img_removed_background, reference = remove_background(img_slice)  
+    reference_point_to_img_raw = np.array([start_point_height, start_point_width]) # + reference
+    img_removed_background = img_slice
     ######################### TESTOWE #########################
     save_path = Path('data/partial_results/2_wyciete_fragmenty')
     save_path.mkdir(parents=True, exist_ok=True)
