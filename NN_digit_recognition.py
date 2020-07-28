@@ -72,7 +72,7 @@ class CNN_model:
         plt.grid(True)
         plt.legend()
         
-    def load_model(self, model_name = 'model_1'):
+    def load_model(self, model_name = 'model_2'):
         self.model = keras.models.load_model('models/'+model_name)
         print("SUCC LOADED")
     
@@ -96,6 +96,9 @@ class CNN_model:
         return pred_classes
 
 
+    def save_model(self,model_name = 'model_100'):
+        self.model.save('models/'+model_name)
+        print("SUCC SAVED")
 
 # def teach_new_model(modelName = 'model_1'):
     
