@@ -94,6 +94,7 @@ class CNN_model:
         
     def load_model(self, model_name = 'model_1'):
         self.model = keras.models.load_model('models/'+model_name)
+        print("SUCC LOADED")
     
     def predict(self,X_valid,y_valid,show=True):
         pred = self.model.predict(X_valid)
@@ -112,7 +113,7 @@ class CNN_model:
     def predict_only_X(self,X_valid):
         pred = self.model.predict(X_valid)
         pred_classes = np.argmax(pred, axis=1)
-        print(pred_classes)
+        return pred_classes
 
 
 

@@ -252,7 +252,7 @@ def cut_digits_from_index_image(last_word_images):
             index_digits_list.append(one_digit)
             
 #             io.imsave(arr=one_digit, fname=word_directory / '{}.png'.format(index_digit))
-        all_indexes_list(index_digits_list)
+        all_indexes_list.append(index_digits_list)
 
 #         io.imsave(arr=temp_image, fname=word_directory / 'index.png')
     return all_indexes_list

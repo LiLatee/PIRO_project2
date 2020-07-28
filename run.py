@@ -36,7 +36,7 @@ from s1_finding_words_areas import get_words_from_base_img, sobel_get_img_from_b
 from s2_finding_fragment_with_text import detect_fragment_with_text
 from s3_finding_word import detect_fragments_with_words
 from s4_snipping_digits import cut_digits_from_index_image
-
+from s5_digit_recognition import analyze_and_predict
 
 def get_all_files_from_catalog(input_dir):
     #TODO dodaj png
@@ -51,6 +51,8 @@ def main(input_dir,number_of_img,output_dir):
         image_name = os.path.splitext(os.path.basename(image_path))[0]
         img_out_path_words = output_dir/"{0}-wyrazy.png".format(image_name)
         out_path_indexes = output_dir/"{0}-indeksy.txt".format(image_name)
+
+        # print(image_path)
         # Zaciągnięcie  obrazu z pliku 
         raw_img = cv2.imread(str(image_path),0)
 
@@ -62,19 +64,31 @@ def main(input_dir,number_of_img,output_dir):
 
         img_removed_background, reference_point_to_img_org = detect_fragment_with_text(words_areas, raw_img.copy())    
         
+        # plt.gcf().set_size_inches(30, 20)
+        # plt.imshow(img_removed_background,cmap = 'gray'),plt.title('??')
+        # plt.show() 
 
         word_areas_from_background = sobel_get_img_from_background(img_removed_background)
+        # plt.gcf().set_size_inches(30, 20)
+        # plt.imshow(word_areas_from_background,cmap = 'gray'),plt.title('??')
+        # plt.show() 
 
         last_word_images = detect_fragments_with_words(word_areas_from_background,raw_img.copy(),reference_point_to_img_org,img_out_path_words)
         
-        print(len(last_word_images[0]))
+        print(len(last_word_images))
+        
 
-        print(last_word_images[0])
+        # print(last_word_images[0])
 
 
         all_indexes_list = cut_digits_from_index_image(last_word_images)
+        # plt.gcf().set_size_inches(30, 20)
+        # plt.imshow(all_indexes_list[1][0],cmap = 'gray'),plt.title('??')
+        # plt.show() 
+        # print(len(all_indexes_list[1]))
 
-        len(all_indexes_list)
+        analyze_and_predict(all_indexes_list,out_path_indexes)
+
         break
 
 

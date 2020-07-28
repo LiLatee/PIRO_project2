@@ -100,6 +100,10 @@ def detect_fragments_with_words(img, img_org, reference_point_to_img_org,img_out
     
     """    
     img_detected_rows = detect_lines_of_text(img.copy()) 
+    
+    # plt.gcf().set_size_inches(30, 20)
+    # plt.imshow(img_detected_rows,cmap = 'gray'),plt.title('??')
+    # plt.show() 
 
     # region = linia tekstu
     label_image = measure.label(img_detected_rows)
@@ -133,11 +137,16 @@ def detect_fragments_with_words(img, img_org, reference_point_to_img_org,img_out
     
     # Wycięcie indeksu (last_word) z oryginalnego obrazu i dodanie go do listy wszystkich.
     last_word_images = []
-    print(last_words)
+    # print(last_words)
     for i, last_word_coords in enumerate(last_words):
         first_point = last_word_coords[0]
         last_point = last_word_coords[-1]
         last_word_img = img_org[first_point[0]:last_point[0]+1, first_point[1]:last_point[1]+1] 
+
+        # plt.gcf().set_size_inches(30, 20)
+        # plt.imshow(last_word_img,cmap = 'gray'),plt.title('??')
+        # plt.show() 
+
         last_word_images.append(last_word_img)
         # Zapisanie
 #         io.imsave(arr=last_word_img, fname=last_word_directory / '{}.png'.format(i))
