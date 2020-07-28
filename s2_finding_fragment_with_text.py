@@ -120,7 +120,7 @@ def detect_fragment_with_text(img, img_raw, img_name="test"):
     shape_before = np.array(img_slice.shape)
     img_removed_background = remove_background(img_slice)
     shape_after = np.array(img_removed_background.shape)
-    shape_diff = shape_before-shape_after
+    shape_diff = (shape_before-shape_after)
 
     reference_point_to_img_raw = np.array([start_point_height, start_point_width]) + shape_diff
 

@@ -74,7 +74,7 @@ def detect_words_in_line(image_result, image_binary, coords_of_line, row_intensi
     last_point = coords_of_line[-1]
     image_result[first_point[0]:last_point[0]+1, first_point[1]:last_point[1]+1] = line_img
                 
-    return last_word_coords
+    return last_word_coords, image_result
 
 
 def get_slice_of_image_with_specific_coords(image, coords):
@@ -122,7 +122,7 @@ def detect_fragments_with_words(img, img_raw, reference_point_to_img_raw, img_ou
     image_result = np.zeros(img.shape, dtype=np.uint8)
     last_words = []
     for i, region in enumerate(regions, 1):
-        last_word_coords = detect_words_in_line(image_result=image_result, 
+        last_word_coords, image_result = detect_words_in_line(image_result=image_result, 
                                                image_binary=img, 
                                                coords_of_line=region.coords, 
                                                row_intensity=((i*1)%256))
@@ -142,12 +142,12 @@ def detect_fragments_with_words(img, img_raw, reference_point_to_img_raw, img_ou
     
     # Wycięcie indeksu (last_word) z oryginalnego obrazu i dodanie go do listy wszystkich.
     last_word_images = []
-    margin = 10
+    margin = 15
     for i, last_word_coords in enumerate(last_words):
         first_point = last_word_coords[0]
         last_point = last_word_coords[-1]
         
-        last_word_img = img_raw[first_point[0]-margin*2:last_point[0]+margin, first_point[1]-margin:last_point[1]+margin] 
+        last_word_img = img_raw[max(first_point[0]-margin, 0):last_point[0]+1, first_point[1]:last_point[1]+1] 
 
         last_word_images.append(last_word_img)
 

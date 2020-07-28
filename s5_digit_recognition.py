@@ -17,6 +17,8 @@ def analyze_and_predict(all_indexes_list,out_path_indexes):
 
 
     for row in all_indexes_list:
+        if len(row) < 1:
+            continue
         temp_row_digits = []
         for digit in row:
             # print(digit.shape)

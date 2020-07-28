@@ -5,6 +5,7 @@ from skimage import measure
 from skimage import exposure
 from skimage import color
 from skimage import util
+from skimage import morphology
 from matplotlib import pyplot as plt
 
 import numpy as np
@@ -12,6 +13,7 @@ import numpy as np
 # TESTOWE
 from skimage import io
 from skimage import draw
+from matplotlib import pyplot as plt
 
 # rect_points - (start_point, end_point), where p0 is top-left corner, p1 is down-right corner
 def euclidean_distance(p1, p2):
@@ -33,21 +35,27 @@ def get_binary_image_with_digits(word_image):
     # Wartość odpowiada regionowi, do którego należey dany piksel.
     otsu_regions = np.digitize(word_image, bins=thresholds)
 
-    # Jeden z wykrytych regionów odpowiadał w większości jasności kratki, więc go usuwam.
+    # Jeden z wykrytych regionów odpowiadał w większości jasności cyfr..
     # Region trzeba traktować jako jakiś przedział wartości jasności w obrazie.
-    image_removed_otsu_region = word_image*util.invert((otsu_regions == 1))
+    # image_removed_otsu_region = word_image*util.invert((otsu_regions == 1))
+    image_digits = (otsu_regions==0)
+
 
     # Po ponownym wykryciu regionów, jeden z nich pasował do cyfr więc użyłem go licząc, że są to cyfry.
-    thresholds = filters.threshold_multiotsu(image_removed_otsu_region, classes=3)
-    otsu_regions = np.digitize(word_image, bins=thresholds)
-    image_digits = (otsu_regions==0)
+    # thresholds = filters.threshold_multiotsu(image_removed_otsu_region, classes=3)
+    # otsu_regions = np.digitize(image_removed_otsu_region, bins=thresholds)
+    # image_digits = (otsu_regions==0)
     
+    # image_digits = morphology.dilation(image_digits, morphology.disk(1)) # DODANE
+    
+
     return image_digits
 
 def get_digits_regions(image_digits):
     # Tutaj region to już chodzi o podobne jasności pikseli w sąsiedztwie.
     label_image = measure.label(image_digits)
     regions = measure.regionprops(label_image)
+    regions = [reg for reg in regions if reg.area > 50]
     
     # usuwanie regionów, które są zbyt szerokie na liczbę (usuwa wykryte poziome linie kratki)
     # źle działa dla 2_1, cyfra 5 jest zbyt duża
@@ -226,13 +234,13 @@ def cut_digits_from_index_image(last_word_images, img_name='test'):
     save_path_img = Path('data/partial_results/4/1_wyciete_cyfry/{}'.format(img_name))
     save_path_img.mkdir(parents=True, exist_ok=True)
     ######################### TESTOWE #########################
-
+    
     all_indexes_list = []
     for i, word_image_org in enumerate(last_word_images):
         # Wczytanie obrazu
         index_digits_list = []
         word_image = word_image_org.copy()
-        word_image = color.rgb2gray(word_image)
+        # word_image = color.rgb2gray(word_image)
         word_image = filters.gaussian(word_image)
 
 
@@ -242,7 +250,8 @@ def cut_digits_from_index_image(last_word_images, img_name='test'):
 
         image_digits = get_binary_image_with_digits(word_image)
 
-        regions = get_digits_regions(image_digits)    
+        regions = get_digits_regions(image_digits)  
+
         rect_points_sorted_by_distance_to_start_of_horizontal_axis = get_list_of_rectangle_points(regions)
 
         word_image = color.gray2rgb(word_image)  
