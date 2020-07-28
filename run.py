@@ -55,13 +55,15 @@ def main(input_dir,number_of_img,output_dir):
         # plt.show() 
 
         word_areas_from_background ,rotation  = sobel_get_img_from_background(img_removed_background, img_name=k)
+        # print("ROTATION:")
+        # print("{0:0.2f}".format(rotation))
         # plt.gcf().set_size_inches(30, 20)
         # plt.imshow(word_areas_from_background,cmap = 'gray'),plt.title('??')
         # plt.show() 
 
         last_word_images = detect_fragments_with_words(word_areas_from_background, raw_img.copy(), reference_point_to_img_org, img_out_path_words, img_name=k)
         
-        print(len(last_word_images))
+        # print(len(last_word_images))
         
 
         # print(last_word_images[0])
