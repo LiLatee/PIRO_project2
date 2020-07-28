@@ -96,6 +96,9 @@ class CNN_model:
         return pred_classes
 
 
+    def save_model(self,model_name = 'model_100'):
+        self.model.save('models/'+model_name)
+        print("SUCC SAVED")
 
 # def teach_new_model(modelName = 'model_1'):
     
