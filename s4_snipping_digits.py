@@ -9,7 +9,9 @@ from matplotlib import pyplot as plt
 
 import numpy as np
 
-# %matplotlib qt
+# TESTOWE
+from skimage import io
+from skimage import draw
 
 # rect_points - (start_point, end_point), where p0 is top-left corner, p1 is down-right corner
 def euclidean_distance(p1, p2):
@@ -211,7 +213,7 @@ def scale_digit_image(image, scale=28):
     return image
 
 
-def cut_digits_from_index_image(last_word_images):
+def cut_digits_from_index_image(last_word_images, img_name='test'):
     """
     Wycina cyfry z obrazu indeksu i zapisuje wykryte indeksy do k-indeksy.txt.
     
@@ -219,8 +221,14 @@ def cut_digits_from_index_image(last_word_images):
     last_word_images: List obrazów indeksów.
     
     """   
+
+    ######################### TESTOWE #########################
+    save_path_img = Path('data/partial_results/4/1_wyciete_cyfry/{}'.format(img_name))
+    save_path_img.mkdir(parents=True, exist_ok=True)
+    ######################### TESTOWE #########################
+
     all_indexes_list = []
-    for word_image_org in last_word_images:
+    for i, word_image_org in enumerate(last_word_images):
         # Wczytanie obrazu
         index_digits_list = []
         word_image = word_image_org.copy()
@@ -239,20 +247,33 @@ def cut_digits_from_index_image(last_word_images):
 
         word_image = color.gray2rgb(word_image)  
         image_digits = util.img_as_ubyte(image_digits)
-        temp_image = word_image_org.copy()
-        for index_digit, (start_point, end_point) in enumerate(rect_points_sorted_by_distance_to_start_of_horizontal_axis):           
-            # Narysowanie prostokąta wokół cyfry.
-#             rr, cc = draw.rectangle_perimeter(start_point, end_point, shape=word_image_org.shape)         
-#             temp_image[rr, cc] = (255,0+index_digit*30,0+index_digit*30)
+        
 
+        ######################### TESTOWE #########################
+        save_path_word = save_path_img / str(i)
+        save_path_word.mkdir(parents=True, exist_ok=True)
+
+        temp_image = word_image_org.copy()
+        temp_image = color.gray2rgb(temp_image)
+        ######################### TESTOWE #########################
+
+        for index_digit, (start_point, end_point) in enumerate(rect_points_sorted_by_distance_to_start_of_horizontal_axis):           
             # Wycięcie cyfry
             one_digit =  image_digits[:, start_point[1]:end_point[1]+1]
             one_digit = scale_digit_image(one_digit, scale=28)
-
             index_digits_list.append(one_digit)
-            
-#             io.imsave(arr=one_digit, fname=word_directory / '{}.png'.format(index_digit))
+
+
+            ######################### TESTOWE #########################
+            io.imsave(arr=one_digit, fname=save_path_word / '{}.png'.format(index_digit))
+
+            # Narysowanie prostokąta wokół cyfry.
+            rr, cc = draw.rectangle_perimeter(start_point, end_point, shape=temp_image.shape)         
+            temp_image[rr, cc] = (255,0+index_digit*30,0+index_digit*30)
+            io.imsave(arr=temp_image, fname=save_path_word / 'index.png')
+            ######################### TESTOWE #########################
+         
         all_indexes_list.append(index_digits_list)
 
-#         io.imsave(arr=temp_image, fname=word_directory / 'index.png')
+
     return all_indexes_list

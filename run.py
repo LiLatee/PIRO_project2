@@ -1,30 +1,8 @@
 from pathlib import Path
-from skimage import io
-from skimage.io import find_available_plugins
 from matplotlib import pyplot as plt
-import PyQt5
-from skimage.filters import threshold_otsu, threshold_local, median
-from skimage.color import rgb2gray, gray2rgb
-from skimage.util import img_as_ubyte, img_as_bool
-from skimage.filters import gaussian, laplace
-from skimage.morphology import erosion, dilation, opening, closing
-from skimage.exposure import rescale_intensity, match_histograms
-from skimage import feature
 from collections import Counter
 import numpy as np
-from skimage.morphology import square
-from skimage.measure import approximate_polygon, subdivide_polygon, find_contours
-from skimage import draw
-from skimage.feature import canny
-from skimage.transform import probabilistic_hough_line
-from skimage import filters
-from skimage import measure
-from skimage import transform
-from skimage import exposure
 import math
-from skimage import util 
-from skimage import morphology
-from skimage.measure import label, regionprops
 import sys
 import os 
 from os import walk,listdir
@@ -62,18 +40,18 @@ def main(input_dir,number_of_img,output_dir):
         # plt.imshow(words_areas,cmap = 'gray'),plt.title('??')
         # plt.show() 
 
-        img_removed_background, reference_point_to_img_org = detect_fragment_with_text(words_areas, raw_img.copy())    
+        img_removed_background, reference_point_to_img_org = detect_fragment_with_text(img=words_areas, img_raw=raw_img.copy(), img_name=image_name)    
         
         # plt.gcf().set_size_inches(30, 20)
         # plt.imshow(img_removed_background,cmap = 'gray'),plt.title('??')
         # plt.show() 
 
-        word_areas_from_background = sobel_get_img_from_background(img_removed_background)
+        word_areas_from_background = sobel_get_img_from_background(img_removed_background, img_name=image_name)
         # plt.gcf().set_size_inches(30, 20)
         # plt.imshow(word_areas_from_background,cmap = 'gray'),plt.title('??')
         # plt.show() 
 
-        last_word_images = detect_fragments_with_words(word_areas_from_background,raw_img.copy(),reference_point_to_img_org,img_out_path_words)
+        last_word_images = detect_fragments_with_words(word_areas_from_background, raw_img.copy(), reference_point_to_img_org, img_out_path_words, img_name=image_name)
         
         print(len(last_word_images))
         
@@ -81,8 +59,9 @@ def main(input_dir,number_of_img,output_dir):
         # print(last_word_images[0])
 
 
-        all_indexes_list = cut_digits_from_index_image(last_word_images)
-        # plt.gcf().set_size_inches(30, 20)
+        all_indexes_list = cut_digits_from_index_image(last_word_images, img_name=image_name)
+        print("all_indexes_list: ", all_indexes_list[0])
+        # plt.gcf().set_size_inches(10, 5)
         # plt.imshow(all_indexes_list[1][0],cmap = 'gray'),plt.title('??')
         # plt.show() 
         # print(len(all_indexes_list[1]))

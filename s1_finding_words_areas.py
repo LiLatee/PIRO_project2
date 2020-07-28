@@ -12,6 +12,9 @@ from skimage import data
 from matplotlib import cm
 from skimage.transform import probabilistic_hough_line,rotate
 
+# TESTOWE
+from skimage import io
+
 
 
 def get_words_from_base_img(img):
@@ -69,7 +72,7 @@ def trh(img):
     return binary_global 
 
 
-def sobel_get_img_from_background(img):    
+def sobel_get_img_from_background(img, img_name='test'):    
 
     laplacian = cv2.Laplacian(img,cv2.CV_64F)
     sobelx = cv2.Sobel(img,cv2.CV_64F,1,0,ksize=7)
@@ -106,7 +109,16 @@ def sobel_get_img_from_background(img):
     new_img = trh(imgg2)
     # plt.gcf().set_size_inches(11, 7)
     # plt.imshow(new_img,cmap = 'gray'),plt.title('normalizedImg')
-    return img_as_ubyte(new_img)
+
+    new_image = img_as_ubyte(new_img)
+    
+    ######################### TESTOWE #########################
+    save_path = Path('data/partial_results/1/2_kontury_wyrazow_na_fragmencie')
+    save_path.mkdir(parents=True, exist_ok=True)
+    io.imsave(arr=new_image, fname=save_path / (img_name+'.png'))
+    ######################### TESTOWE #########################
+
+    return new_image
 
 
 

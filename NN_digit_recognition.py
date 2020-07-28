@@ -1,33 +1,13 @@
-import cv2 
 from matplotlib import pyplot as plt
-from pathlib import Path
-from skimage import io
-from skimage import img_as_ubyte
-import numpy as np
-from pathlib import Path
-from skimage import io
-from skimage import color
-from skimage import measure
-from skimage import morphology
-from skimage import transform
-import re
-import tensorflow as tf    
 import keras
 from keras.utils import to_categorical
-from keras import layers, models, callbacks
-from keras.layers.normalization import BatchNormalization
+from keras import layers, models
 from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import seaborn as sns
-import itertools
-import glob
-import cv2
-import json
-import os
 
 
 class CNN_model:

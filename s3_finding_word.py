@@ -5,7 +5,9 @@ from skimage import measure
 from skimage import morphology
 from matplotlib import pyplot as plt
 from skimage import util
-# %matplotlib qt
+
+# TESTOWE
+from skimage import io
 
 def detect_lines_of_text(img):    
     # obliczamy średnią jasność wierszy w obrazie
@@ -83,23 +85,26 @@ def get_slice_of_image_with_specific_coords(image, coords):
     return slice_image
 
 
-save_path_k_wyrazy = Path('../data/partial_results/k_wyrazy_2') # POTRZEBNE - to jeden z wyników zadania
-save_path_k_wyrazy.mkdir(parents=True, exist_ok=True)
-
-def detect_fragments_with_words(img, img_org, reference_point_to_img_org,img_out_path_words):
+def detect_fragments_with_words(img, img_raw, reference_point_to_img_raw, img_out_path_words, img_name='test'):
     """
     Zapisuje k-wyrazy.png oraz wykrywa fragmenty obrazu reprezentującego indeksy.
     
     Parameters:
     img: Na wejście dostaje obraz binarny, gdzie wykryty tekst jest wskazywany przez 1, a reszta to 0.
-    img_org: Oryginalny niezmieniony obraz.
-    reference_point_to_img_org: Punkt odniesienia wycinku (img) do obrazu oryginalnego (img_org).
+    img_raw: Oryginalny niezmieniony obraz.
+    reference_point_to_img_raw: Punkt odniesienia wycinku (img) do obrazu oryginalnego (img_raw).
     
     Returns:
     last_word_images: Lista wyciętych fragmentów indeksów z oryginalnego obrazu.
     
     """    
-    img_detected_rows = detect_lines_of_text(img.copy()) 
+    img_detected_rows = detect_lines_of_text(util.img_as_float(img.copy()))
+
+    ######################### TESTOWE #########################
+    save_path = Path('data/partial_results/3/1_wykryte_wiersze_tekstu')
+    save_path.mkdir(parents=True, exist_ok=True)
+    io.imsave(arr=util.img_as_ubyte(img_detected_rows), fname=save_path / '{}.png'.format(img_name))
+    ######################### TESTOWE #########################
     
     # plt.gcf().set_size_inches(30, 20)
     # plt.imshow(img_detected_rows,cmap = 'gray'),plt.title('??')
@@ -122,7 +127,7 @@ def detect_fragments_with_words(img, img_org, reference_point_to_img_org,img_out
                                                coords_of_line=region.coords, 
                                                row_intensity=((i*1)%256))
 
-        last_word_coords = np.array([[el[0]+reference_point_to_img_org[0],el[1]+reference_point_to_img_org[1]] for el in last_word_coords])
+        last_word_coords = np.array([[el[0]+reference_point_to_img_raw[0],el[1]+reference_point_to_img_raw[1]] for el in last_word_coords])
         last_words.append(last_word_coords)
     
     # Zapisywanie k-wyrazy 
@@ -137,18 +142,21 @@ def detect_fragments_with_words(img, img_org, reference_point_to_img_org,img_out
     
     # Wycięcie indeksu (last_word) z oryginalnego obrazu i dodanie go do listy wszystkich.
     last_word_images = []
-    # print(last_words)
+    margin = 10
     for i, last_word_coords in enumerate(last_words):
         first_point = last_word_coords[0]
         last_point = last_word_coords[-1]
-        last_word_img = img_org[first_point[0]:last_point[0]+1, first_point[1]:last_point[1]+1] 
-
-        # plt.gcf().set_size_inches(30, 20)
-        # plt.imshow(last_word_img,cmap = 'gray'),plt.title('??')
-        # plt.show() 
+        
+        last_word_img = img_raw[first_point[0]-margin*2:last_point[0]+margin, first_point[1]-margin:last_point[1]+margin] 
 
         last_word_images.append(last_word_img)
-        # Zapisanie
-#         io.imsave(arr=last_word_img, fname=last_word_directory / '{}.png'.format(i))
+
+
+    ######################### TESTOWE #########################
+    save_path = Path('data/partial_results/3/2_wyciete_indeksy/{}'.format(img_name))
+    save_path.mkdir(parents=True, exist_ok=True)
+    for i, img in enumerate(last_word_images):       
+        io.imsave(arr=img, fname=save_path / '{}.png'.format(i))
+    ######################### TESTOWE #########################
 
     return last_word_images
