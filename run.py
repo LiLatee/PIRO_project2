@@ -31,7 +31,7 @@ def main(input_dir,number_of_img,output_dir):
     
     print(np.array(all_images))
     for image_path in all_images:
-        # image_path = Path('data/ocr1/img_1.jpg') # TODO DO USUNIĘCIA
+        image_path = Path('data/ocr1/img_1.jpg') # TODO DO USUNIĘCIA
 
         image_name = os.path.splitext(os.path.basename(image_path))[0]
         k = re.search('[0-9]+', image_path.stem)[0]
@@ -73,7 +73,7 @@ def main(input_dir,number_of_img,output_dir):
 
         analyze_and_predict(all_indexes_list, out_path_indexes)
 
-        # break
+        break
 
 
 
