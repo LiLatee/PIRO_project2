@@ -54,7 +54,7 @@ def main(input_dir,number_of_img,output_dir):
         # plt.imshow(img_removed_background,cmap = 'gray'),plt.title('??')
         # plt.show() 
 
-        word_areas_from_background = sobel_get_img_from_background(img_removed_background, img_name=k)
+        word_areas_from_background ,rotation  = sobel_get_img_from_background(img_removed_background, img_name=k)
         # plt.gcf().set_size_inches(30, 20)
         # plt.imshow(word_areas_from_background,cmap = 'gray'),plt.title('??')
         # plt.show() 

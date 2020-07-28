@@ -73,8 +73,8 @@ def trh(img):
     return binary_global 
 
 
-def sobel_get_img_from_background(img, img_name='test'):    
-
+def sobel_get_img_from_background(img):    
+    rotation = hugh_and_rotation(img)
     laplacian = cv2.Laplacian(img,cv2.CV_64F)
     sobelx = cv2.Sobel(img,cv2.CV_64F,1,0,ksize=7)
     sobely = cv2.Sobel(sobelx,cv2.CV_64F,0,1,ksize=7)
@@ -110,18 +110,7 @@ def sobel_get_img_from_background(img, img_name='test'):
     new_img = trh(imgg2)
     # plt.gcf().set_size_inches(11, 7)
     # plt.imshow(new_img,cmap = 'gray'),plt.title('normalizedImg')
-
-    new_image = img_as_ubyte(new_img)
-    
-    ######################### TESTOWE #########################
-    save_path = Path('data/partial_results/1/2_kontury_wyrazow_na_fragmencie')
-    save_path.mkdir(parents=True, exist_ok=True)
-    io.imsave(arr=new_image, fname=save_path / (img_name+'.png'))
-    ######################### TESTOWE #########################
-
-    return new_image
-
-
+    return img_as_ubyte(new_img),rotation
 
 #WYKRYWANIE KĄTA NA RAZIE NIE UŻYWANE!!!!!!!
 
@@ -132,14 +121,18 @@ def get_angle(line):
 def hugh_and_rotation(image):
     kernelg = np.ones((3,3),np.uint8)
     gradient = cv2.morphologyEx(image, cv2.MORPH_GRADIENT, kernelg)
+    gradient = img_as_ubyte(gradient)
+    # plt.gcf().set_size_inches(11, 7)
+    # plt.imshow(gradient,cmap = 'gray'),plt.title('closing1')
+    # plt.show()
+
     edges = cv2.Canny(gradient,200,300)
+    angle = 0
     
-#     plt.gcf().set_size_inches(11, 7)
-#     plt.imshow(gradient,cmap = 'gray'),plt.title('closing1')
-#     plt.show()
-#     plt.gcf().set_size_inches(11, 7)
-#     plt.imshow(edges,cmap = 'gray'),plt.title('closing1')
-#     plt.show() 
+
+    # plt.gcf().set_size_inches(11, 7)
+    # plt.imshow(edges,cmap = 'gray'),plt.title('closing1')
+    # plt.show() 
     
     
     angles = np.linspace((np.pi / 2)-0.040, (np.pi / 2)+0.040, 360)
@@ -164,13 +157,13 @@ def hugh_and_rotation(image):
 #     ax[2].set_ylim((image.shape[0], 0))
 #     ax[2].set_title('Probabilistic Hough')
     
-#     if len(lines) > 0:
-#         angle = get_angle(lines[0])
-#         image = rotate(image, angle)
+    if len(lines) > 0:
+        angle = get_angle(lines[0])
+        image = rotate(image, angle)
 
+    # print(angle)
     
-    
-    return image, lines
+    return angle
     
     
 # img = cv2.imread(OBRAZY+'/img_20.png',0)
