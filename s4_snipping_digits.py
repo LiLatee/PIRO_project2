@@ -4,6 +4,7 @@ from skimage import transform
 from skimage import measure
 from skimage import exposure
 from skimage import color
+from skimage import util
 from matplotlib import pyplot as plt
 
 import numpy as np
@@ -225,15 +226,8 @@ def cut_digits_from_index_image(last_word_images):
         word_image = word_image_org.copy()
         word_image = color.rgb2gray(word_image)
         word_image = filters.gaussian(word_image)
-        plt.gcf().set_size_inches(30, 20)
-        plt.imshow(word_image,cmap = 'gray'),plt.title('??')
-        plt.show() 
-    # print(image_result.shape)
-    # print(type(image_result))
-    # print(image_result)
-    # print()
-    # from collections import Counter
-    # print(Counter(image_result.ravel()))
+
+
         # Rozciąganie jasności obrazu.
         p2, p98 = np.percentile(word_image, (2, 98))
         word_image = exposure.rescale_intensity(word_image, in_range=(p2, p98))
@@ -256,8 +250,6 @@ def cut_digits_from_index_image(last_word_images):
             one_digit = scale_digit_image(one_digit, scale=28)
 
             index_digits_list.append(one_digit)
-            # TUTAJ MAMY OBRAZ JEDNEJ CYFRY, więc trzeba użyć sieci do wykrycia
-            # a po pętli zapisać całą liczbę do pliku tekstowego?
             
 #             io.imsave(arr=one_digit, fname=word_directory / '{}.png'.format(index_digit))
         all_indexes_list(index_digits_list)

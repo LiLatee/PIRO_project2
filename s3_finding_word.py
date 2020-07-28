@@ -117,10 +117,9 @@ def detect_fragments_with_words(img, img_org, reference_point_to_img_org,img_out
                                                image_binary=img, 
                                                coords_of_line=region.coords, 
                                                row_intensity=((i*1)%256))
-        
-        last_word_coords_height = last_word_coords[0] + reference_point_to_img_org[0]
-        last_word_coords_width = last_word_coords[1] + reference_point_to_img_org[1]
-        last_words.append([last_word_coords_height, last_word_coords_width])
+
+        last_word_coords = np.array([[el[0]+reference_point_to_img_org[0],el[1]+reference_point_to_img_org[1]] for el in last_word_coords])
+        last_words.append(last_word_coords)
     
     # Zapisywanie k-wyrazy 
     # image_result = util.img_as_ubyte(image_result)
@@ -139,7 +138,6 @@ def detect_fragments_with_words(img, img_org, reference_point_to_img_org,img_out
         first_point = last_word_coords[0]
         last_point = last_word_coords[-1]
         last_word_img = img_org[first_point[0]:last_point[0]+1, first_point[1]:last_point[1]+1] 
-        print(last_word_img)
         last_word_images.append(last_word_img)
         # Zapisanie
 #         io.imsave(arr=last_word_img, fname=last_word_directory / '{}.png'.format(i))

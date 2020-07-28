@@ -107,10 +107,11 @@ if __name__ == "__main__":
     if os.path.exists(str(sys.argv[3])):
         print('Katalog z wynikami', str(sys.argv[3]))
         output_dir = Path(str(sys.argv[3]))
-
     else:
         print('Nie ma katalogu o podanej ścieżce: ', str(sys.argv[3]))
-        exit()
+        output_dir = Path(str(sys.argv[3]))
+        output_dir.mkdir(parents=True, exist_ok=True)
+        print("Utworzono katalog wyjściowy: {}".format((str(sys.argv[3]))))
 
     #TODO zmień parametry wejściowe
     
