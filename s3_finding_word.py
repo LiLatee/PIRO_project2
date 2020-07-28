@@ -17,7 +17,7 @@ def detect_lines_of_text(img):
     # wiersze poniżej średniej jasności zerujemy (usuwa np. ogonki liter nachodzących na kolejne wiersze)
     # chodzi o to żeby wyciągnąć na pewno te wiersze obrazu, w których jest tekst
     for i, row in enumerate(img):
-        if np.sum(row) < mean_row_value: # mean_row_value, ale to jest takie niefajne, eh
+        if np.sum(row) < 0: # mean_row_value, ale to jest takie niefajne, eh
             row = np.zeros(row.shape)
             img[i] = row
         

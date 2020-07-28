@@ -38,24 +38,23 @@ def remove_background_on_left_side(img):
     bias = 0.2 # 0.07 bez roziągania histogramu
     was_action = True 
 
-    cnt = 0
+    width_before = img.shape[1]
     for el in range(0, len(img.T), step):
-        if np.mean(img[:,el:el+step]) < mean_value_in_img-bias:
+        if np.mean(img[:,el:el+step]) < mean_value_in_img-bias:           
 #             img[:,el:el+step] = mean_value_in_img
             img = img[:,el+step:]
             was_action = True
-            cnt += 1
         else:
             was_action = False
         
         if not was_action:
 #             img[:,el:el+step] = mean_value_in_img
             img = img[:,el+int(step/2):]
-            cnt += 1
             break
     
-    removed_pixels = step*cnt
-    return img, removed_pixels
+    width_after = img.shape[1]
+    width_diff = width_before-width_after
+    return img, width_diff
 
 def remove_background(img):
     # usuwa z lewej
@@ -120,13 +119,13 @@ def detect_fragment_with_text(img, img_raw, img_name="test"):
     img_slice = img_raw[start_point_height:end_point_height, start_point_width:end_point_width]
     
     # Na wycinkach nadal czasami pojawia się stół. Więc usuwamy te fragmenty.
-    # p2, p98 = np.percentile(img_slice, (2, 98))
-    # img_slice = exposure.rescale_intensity(img_slice, in_range=(p2, p98))
+    p2, p98 = np.percentile(img_slice, (2, 98))
+    img_slice = exposure.rescale_intensity(img_slice, in_range=(p2, p98))
 
 
-    # img_removed_background, reference = remove_background(img_slice)  
-    reference_point_to_img_raw = np.array([start_point_height, start_point_width]) # + reference
-    img_removed_background = img_slice
+    img_removed_background, reference = remove_background(img_slice)  
+    reference_point_to_img_raw = np.array([start_point_height, start_point_width]) + reference
+
     ######################### TESTOWE #########################
     save_path = Path('data/partial_results/2_wyciete_fragmenty')
     save_path.mkdir(parents=True, exist_ok=True)

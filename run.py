@@ -31,7 +31,7 @@ def main(input_dir,number_of_img,output_dir):
     
     print(np.array(all_images))
     for image_path in all_images:
-        # image_path = Path('data/ocr1/img_6.jpg') # TODO DO USUNIĘCIA
+        # image_path = Path('data/ocr1/img_1.jpg') # TODO DO USUNIĘCIA
 
         image_name = os.path.splitext(os.path.basename(image_path))[0]
         k = re.search('[0-9]+', image_path.stem)[0]
@@ -59,12 +59,9 @@ def main(input_dir,number_of_img,output_dir):
         # plt.imshow(word_areas_from_background,cmap = 'gray'),plt.title('??')
         # plt.show() 
 
-        last_word_images = detect_fragments_with_words(word_areas_from_background, raw_img.copy(), reference_point_to_img_org, img_out_path_words, img_name=k)
-        
-        print(len(last_word_images))
-        
 
-        # print(last_word_images[0])
+        last_word_images = detect_fragments_with_words(word_areas_from_background, raw_img.copy(), reference_point_to_img_org, img_out_path_words, img_name=k)
+            
 
 
         all_indexes_list = cut_digits_from_index_image(last_word_images, img_name=k)
