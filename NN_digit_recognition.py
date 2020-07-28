@@ -72,7 +72,7 @@ class CNN_model:
         plt.grid(True)
         plt.legend()
         
-    def load_model(self, model_name = 'model_1'):
+    def load_model(self, model_name = 'model_2'):
         self.model = keras.models.load_model('models/'+model_name)
         print("SUCC LOADED")
     
