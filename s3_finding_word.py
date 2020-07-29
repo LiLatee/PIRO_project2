@@ -5,27 +5,39 @@ from skimage import measure
 from skimage import morphology
 from matplotlib import pyplot as plt
 from skimage import util
+from skimage import filters
 
 # TESTOWE
 from skimage import io
+from collections import Counter
+
+def thresholding(img):
+    thresh = filters.threshold_otsu(img, 3)
+    img = img > thresh
+    return img
 
 def detect_lines_of_text(img):    
     # obliczamy średnią jasność wierszy w obrazie
+    img = thresholding(img)
+    img = morphology.erosion(img, morphology.disk(5))
+
+
     sum_of_rows = np.sum(img, axis=1) 
     mean_row_value = np.mean(sum_of_rows)
+
+    max_value_in_row = img.shape[1]*1
     
     # wiersze poniżej średniej jasności zerujemy (usuwa np. ogonki liter nachodzących na kolejne wiersze)
     # chodzi o to żeby wyciągnąć na pewno te wiersze obrazu, w których jest tekst
+    # zaznaczamy obszary, które są powyżej średniej (całe wiersze)e
     for i, row in enumerate(img):
-        if np.sum(row) < 0: # mean_row_value, ale to jest takie niefajne, eh
+        if np.sum(row) <= 0.02*max_value_in_row:
             row = np.zeros(row.shape)
             img[i] = row
-        
-    # zaznaczamy obszary, które są powyżej średniej (całe wiersze)
-    for i, row in enumerate(img):
-        if np.sum(row) > 0.0:
-            img[i:i+1, :] = 1 
+        else:
+            img[i:i+1, :] = 1       
             
+
     # łączenie lekko rozdzielonych linijek
 #     img = morphology.dilation(img, morphology.disk(5)) # TODO WAŻNE - zoptymalizować!
                 
@@ -35,24 +47,27 @@ def detect_lines_of_text(img):
 def detect_words_in_line(image_result, image_binary, coords_of_line, reference_point_to_img_raw, row_intensity=255):
     # wycinamy kawałek obrazu będącego linią tekstu i obracamy go (.T)
     line_img = get_slice_of_image_with_specific_coords(image=image_binary, coords=coords_of_line).T
+    line_img = thresholding(line_img)
+    print(line_img.shape)
     line_img = morphology.dilation(line_img, morphology.disk(13))
     
     # szukamy miejsc, w których jasność jest większa od 0.0 i te miejsca zaznaczamy w wycinku obrazu
     # (obraz jest obrócony, więc tekst idzie z góry na dół)
     sum_of_rows = np.sum(line_img, axis=1) 
     mean_row_value = np.mean(sum_of_rows)
+    line_img = util.img_as_ubyte(line_img)
     for i, row in enumerate(line_img):
         if np.mean(row) > 0.0:
 #             line_img[i:i+1, :] = (255, 0, 0)
             line_img[i:i+1, :] = row_intensity
     # znowu obracamy, tekst biegnie od lewej do prawej
     line_img = line_img.T
-    
+
     # wykrywamy regiony, czyli pojedynczy region to powinien być jeden wyraz
     label_line_img = measure.label(line_img)
     regions = measure.regionprops(label_line_img)
 #     print("liczba słów: ", len(regions))
-    
+
     # tutaj szukamy regionu, który jest najdalej na lewo - czyli indeksu
     max_width_coord = max(regions[0].coords[:, 1])
     max_region_index = 0
@@ -61,19 +76,19 @@ def detect_words_in_line(image_result, image_binary, coords_of_line, reference_p
         if temp > max_width_coord:
             max_width_coord = temp
             max_region_index = i + 1
-    
+
     # czyli mamy wszystkie współrzędne regionu z indeksem
     last_word_coords = regions[max_region_index].coords
     # ale aktualnie do tego regionu odnosimy się względem naszego wycinka obrazu - jednego wiersza
     # a chcemy go zaznaczyć na całym obrazie, więc do współrzędnych dodajemy współrzędne naszego wycinka,
     # (te współrzędne wycinka odnoszą się do całego obrazu)
     last_word_coords[:,0] += coords_of_line[0][0]
-    
+
     # zamieniamy ten wycinek obrazu w całym obrazie
     first_point = coords_of_line[0]
     last_point = coords_of_line[-1]
     image_result[first_point[0]+reference_point_to_img_raw[0]:last_point[0]+reference_point_to_img_raw[0]+1, first_point[1]+reference_point_to_img_raw[1]:last_point[1]+reference_point_to_img_raw[1]+1] = line_img
-                
+
     return last_word_coords, image_result
 
 
@@ -99,13 +114,11 @@ def detect_fragments_with_words(img, img_raw, reference_point_to_img_raw, img_ou
     
     """    
     img_detected_rows = detect_lines_of_text(util.img_as_float(img.copy()))
-
     ######################### TESTOWE #########################
     save_path = Path('data/partial_results/3/1_wykryte_wiersze_tekstu')
     save_path.mkdir(parents=True, exist_ok=True)
     io.imsave(arr=util.img_as_ubyte(img_detected_rows), fname=save_path / '{}.png'.format(img_name))
     ######################### TESTOWE #########################
-    
     # plt.gcf().set_size_inches(30, 20)
     # plt.imshow(img_detected_rows,cmap = 'gray'),plt.title('??')
     # plt.show() 
@@ -113,10 +126,11 @@ def detect_fragments_with_words(img, img_raw, reference_point_to_img_raw, img_ou
     # region = linia tekstu
     label_image = measure.label(img_detected_rows)
     regions = measure.regionprops(label_image)
-    
-#     width = img_canny.shape[1]
-#     regions = [reg for reg in regions if reg.area > width*5] # wiersze powyżej 7 pikseli wysokości
-#     print("regions po usunięciu cienkich wierszy: ", len(regions))
+    width = img_detected_rows.shape[1]
+    regions = [reg for reg in regions if reg.area > width*5] # wiersze powyżej 5 pikseli wysokości
+    std = np.std([reg.area for reg in regions])/width 
+    regions = [reg for reg in regions if reg.area/width > std]
+
     
     # Wynikowy obraz ma mieć czarne tło, a wyrazy w kolejnych wierszach mają mieć wartości 1,2,3...
     image_result = np.zeros(img_raw.shape, dtype=np.uint8)
@@ -130,11 +144,9 @@ def detect_fragments_with_words(img, img_raw, reference_point_to_img_raw, img_ou
 
         last_word_coords = np.array([[el[0]+reference_point_to_img_raw[0],el[1]+reference_point_to_img_raw[1]] for el in last_word_coords])
         last_words.append(last_word_coords)
-    
     # Zapisywanie k-wyrazy 
     # image_result = util.img_as_ubyte(image_result)
     io.imsave(arr=image_result, fname=img_out_path_words)
-
     
     # Utworzenie katalogu dla wycinka indeksu.
 #     number_of_image = re.search('[0-9]+', image_path.stem)[0]
@@ -143,15 +155,14 @@ def detect_fragments_with_words(img, img_raw, reference_point_to_img_raw, img_ou
     
     # Wycięcie indeksu (last_word) z oryginalnego obrazu i dodanie go do listy wszystkich.
     last_word_images = []
-    margin = 15
+    margin = 7
     for i, last_word_coords in enumerate(last_words):
         first_point = last_word_coords[0]
         last_point = last_word_coords[-1]
         
-        last_word_img = img_raw[max(first_point[0]-margin, 0):last_point[0]+1, first_point[1]:last_point[1]+1] 
+        last_word_img = img_raw[max(first_point[0]-margin, 0):last_point[0]+margin, first_point[1]:last_point[1]+1] 
 
         last_word_images.append(last_word_img)
-
 
     ######################### TESTOWE #########################
     save_path = Path('data/partial_results/3/2_wyciete_indeksy/{}'.format(img_name))
@@ -159,5 +170,4 @@ def detect_fragments_with_words(img, img_raw, reference_point_to_img_raw, img_ou
     for i, img in enumerate(last_word_images):       
         io.imsave(arr=img, fname=save_path / '{}.png'.format(i))
     ######################### TESTOWE #########################
-
     return last_word_images

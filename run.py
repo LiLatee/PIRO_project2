@@ -17,22 +17,26 @@ from s3_finding_word import detect_fragments_with_words
 from s4_snipping_digits import cut_digits_from_index_image
 from s5_digit_recognition import analyze_and_predict
 
+import warnings
+warnings.filterwarnings("ignore")
+
 # TESTOWE
 from skimage import io
+from skimage import transform
 
 def get_all_files_from_catalog(input_dir):
     #TODO dodaj png
-    all_images = sorted(input_dir.glob("*.jpg"))
-    return all_images
+    all_images = input_dir.glob("*.jpg")
+    return list(all_images)
     
 
 def main(input_dir,number_of_img,output_dir):
     all_images = get_all_files_from_catalog(input_dir)
-    
-    print(np.array(all_images))
+    print("LICZBA OBRAZÓW WEJŚCIOWYCH: ", len(all_images))
+        
     for image_path in all_images:
-        image_path = Path('data/ocr1/img_1.jpg') # TODO DO USUNIĘCIA
-        print("{} ##########################################################".format(image_path))
+        # image_path = Path('data/ocr1/img_12.jpg') # TODO DO USUNIĘCIA
+        print("############################## {} ##############################".format(image_path))
         image_name = os.path.splitext(os.path.basename(image_path))[0]
         k = re.search('[0-9]+', image_path.stem)[0]
         img_out_path_words = output_dir/"{0}-wyrazy.png".format(k)
@@ -47,39 +51,36 @@ def main(input_dir,number_of_img,output_dir):
         # plt.gcf().set_size_inches(30, 20)
         # plt.imshow(words_areas,cmap = 'gray'),plt.title('??')
         # plt.show() 
-
         img_removed_background, reference_point_to_img_org = detect_fragment_with_text(img=words_areas, img_raw=raw_img.copy(), img_name=k)    
         
         # plt.gcf().set_size_inches(30, 20)
         # plt.imshow(img_removed_background,cmap = 'gray'),plt.title('??')
         # plt.show() 
-
         word_areas_from_background, rotation  = sobel_get_img_from_background(img_removed_background, img_name=k)
+        # io.imshow(word_areas_from_background)
+        # plt.show()
+        # print("rotation: ", rotation)
+        # io.imshow(transform.rotate(word_areas_from_background, rotation))
+        # plt.show()
+
         # print("ROTATION:")
         # print("{0:0.2f}".format(rotation))
         # plt.gcf().set_size_inches(30, 20)
         # plt.imshow(word_areas_from_background,cmap = 'gray'),plt.title('??')
         # plt.show() 
 
-        last_word_images = detect_fragments_with_words(word_areas_from_background, raw_img.copy(), reference_point_to_img_org, img_out_path_words, img_name=k)
-        
-        # print(len(last_word_images))
-        
-
-        last_word_images = detect_fragments_with_words(word_areas_from_background, raw_img.copy(), reference_point_to_img_org, img_out_path_words, img_name=k)
-            
-
+        # TODO ROTACJA JEST ZROBIONA A WYNIKOWE OBRAZY TEGO NIE UWZGLĘDNIAJĄ
+        word_areas_from_background_rotated = transform.rotate(word_areas_from_background, rotation)
+        last_word_images = detect_fragments_with_words(word_areas_from_background_rotated, raw_img.copy(), reference_point_to_img_org, img_out_path_words, img_name=k)
+        # continue
 
         all_indexes_list = cut_digits_from_index_image(last_word_images, img_name=k)
-        print("all_indexes_list: ", len(all_indexes_list))
-        # plt.gcf().set_size_inches(10, 5)
-        # plt.imshow(all_indexes_list[1][0],cmap = 'gray'),plt.title('??')
-        # plt.show() 
-        # print(len(all_indexes_list[1]))
+        # print("all_indexes_list: ", len(all_indexes_list))
+
 
         analyze_and_predict(all_indexes_list, out_path_indexes)
 
-        break
+        # break
 
 
 

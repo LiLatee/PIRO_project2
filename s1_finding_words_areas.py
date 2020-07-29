@@ -11,7 +11,7 @@ from skimage.feature import canny
 from skimage import data
 from matplotlib import cm
 from skimage.transform import probabilistic_hough_line,rotate
-
+from skimage import util
 # TESTOWE
 from skimage import io
 
@@ -66,9 +66,13 @@ def get_words_from_base_img(img):
 #     plt.show()
     return edges
 
+def trh(img):
+    global_thresh = threshold_otsu(img)
+    binary_global = img > global_thresh
+    return binary_global 
 
-
-def sobel_get_img_from_background(img, img_name='test'):    
+def sobel_get_img_from_background(img, img_name='test'):  
+    img = util.img_as_ubyte(img)  
     rotation = hugh_and_rotation(img)
     laplacian = cv2.Laplacian(img,cv2.CV_64F)
     sobelx = cv2.Sobel(img,cv2.CV_64F,1,0,ksize=7)

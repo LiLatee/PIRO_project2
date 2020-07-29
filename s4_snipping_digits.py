@@ -58,10 +58,9 @@ def get_digits_regions(image_digits):
     regions = [reg for reg in regions if reg.area > 50]
     
     # usuwanie regionów, które są zbyt szerokie na liczbę (usuwa wykryte poziome linie kratki)
-    # źle działa dla 2_1, cyfra 5 jest zbyt duża
-#     width = image_digits.shape[1] 
-#     regions_width = [(np.max(reg.coords[:, 1]) - np.min(reg.coords[:, 1])) for reg in regions]
-#     regions = [reg for i, reg in enumerate(regions) if regions_width[i] < width/5]
+    width = image_digits.shape[1] 
+    regions_width = [(np.max(reg.coords[:, 1]) - np.min(reg.coords[:, 1])) for reg in regions]
+    regions = [reg for i, reg in enumerate(regions) if regions_width[i] < width/3]
 
 #     print("liczba wykrytych regionów (cyfr): ", len(regions))
     
@@ -91,7 +90,7 @@ def remove_overlapped_regions(regions_as_rect_points):
         reg2_start_point, reg2_end_point = reg2
         
         diff = reg2_start_point[1] - reg1_end_point[1] 
-        if diff < 0: # jeżeli regiony oddalone o mniej niż 'diff' pikseli to połącz w jeden
+        if diff < 0: # jeżeli regiony oddalone o mniej niż 0 pikseli to połącz w jeden
             new_start_point, new_end_point = combine_two_overlapping_regions(reg1, reg2)
                 
             valid_regions.append([new_start_point, new_end_point])              
@@ -268,8 +267,8 @@ def cut_digits_from_index_image(last_word_images, img_name='test'):
 
         for index_digit, (start_point, end_point) in enumerate(rect_points_sorted_by_distance_to_start_of_horizontal_axis):           
             # Wycięcie cyfry
-            one_digit =  image_digits[start_point[0]:end_point[0]+1, start_point[1]:end_point[1]+1]
-            # one_digit =  image_digits[:, start_point[1]:end_point[1]+1]
+            # one_digit =  image_digits[start_point[0]:end_point[0]+1, start_point[1]:end_point[1]+1]
+            one_digit =  image_digits[:, start_point[1]:end_point[1]+1]
 
             one_digit = scale_digit_image(one_digit, scale=28)
             index_digits_list.append(one_digit)
