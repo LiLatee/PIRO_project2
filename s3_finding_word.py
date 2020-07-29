@@ -5,11 +5,33 @@ from skimage import measure
 from skimage import morphology
 from matplotlib import pyplot as plt
 from skimage import util
+from skimage import transform
 from skimage import filters
 
 # TESTOWE
 from skimage import io
 from collections import Counter
+
+def resize_after_rotate(img_rotated, destination_shape):
+    """
+        Stara się wrócić do poprzedniego rozmiaru obrazu, który został przekształcony przez rotacje.
+
+        Parameters:
+        img_rotated: Przekształcony obraz, na którym dwukrotnie wykonano operacje rotacji o kąt X oraz -X.
+        destination_shape: Wymiary obrazu przed obydwoma rotacjami.
+    """
+    diff = (np.array(img_rotated.shape) - np.array(destination_shape))/2
+    new = img_rotated[int(diff[0]):-int(diff[0]), int(diff[1]):-int(diff[1])]
+    
+    diff = (np.array(new.shape) - np.array(destination_shape))
+    if diff[0] > 0:
+        new = new[:-diff[0], :]
+    
+    if diff[1] > 0:
+        new = new[:, :-diff[1]]
+    
+    new = new.astype(np.uint8)
+    return new
 
 def thresholding(img):
     thresh = filters.threshold_otsu(img, 3)
@@ -48,7 +70,7 @@ def detect_words_in_line(image_result, image_binary, coords_of_line, reference_p
     # wycinamy kawałek obrazu będącego linią tekstu i obracamy go (.T)
     line_img = get_slice_of_image_with_specific_coords(image=image_binary, coords=coords_of_line).T
     line_img = thresholding(line_img)
-    print(line_img.shape)
+    # print(line_img.shape)
     line_img = morphology.dilation(line_img, morphology.disk(13))
     
     # szukamy miejsc, w których jasność jest większa od 0.0 i te miejsca zaznaczamy w wycinku obrazu
@@ -87,8 +109,8 @@ def detect_words_in_line(image_result, image_binary, coords_of_line, reference_p
     # zamieniamy ten wycinek obrazu w całym obrazie
     first_point = coords_of_line[0]
     last_point = coords_of_line[-1]
-    image_result[first_point[0]+reference_point_to_img_raw[0]:last_point[0]+reference_point_to_img_raw[0]+1, first_point[1]+reference_point_to_img_raw[1]:last_point[1]+reference_point_to_img_raw[1]+1] = line_img
-
+    # image_result[first_point[0]+reference_point_to_img_raw[0]:last_point[0]+reference_point_to_img_raw[0]+1, first_point[1]+reference_point_to_img_raw[1]:last_point[1]+reference_point_to_img_raw[1]+1] = line_img
+    image_result[first_point[0]:last_point[0]+1, first_point[1]:last_point[1]+1] = line_img
     return last_word_coords, image_result
 
 
@@ -100,7 +122,7 @@ def get_slice_of_image_with_specific_coords(image, coords):
     return slice_image
 
 
-def detect_fragments_with_words(img, img_raw, reference_point_to_img_raw, img_out_path_words, img_name='test'):
+def detect_fragments_with_words(img, img_raw, gray_fragment, rotation, reference_point_to_img_raw, img_out_path_words, img_name='test'):
     """
     Zapisuje k-wyrazy.png oraz wykrywa fragmenty obrazu reprezentującego indeksy.
     
@@ -113,45 +135,58 @@ def detect_fragments_with_words(img, img_raw, reference_point_to_img_raw, img_ou
     last_word_images: Lista wyciętych fragmentów indeksów z oryginalnego obrazu.
     
     """    
+    # Wyrównujemy tekst, aby był jak najbardziej poziomo.
+    raw_img_shape = img.shape
+    img = transform.rotate(img, rotation, resize=True, preserve_range=True)
+    gray_fragment = transform.rotate(gray_fragment, rotation, resize=True, preserve_range=True)
+
     img_detected_rows = detect_lines_of_text(util.img_as_float(img.copy()))
     ######################### TESTOWE #########################
     save_path = Path('data/partial_results/3/1_wykryte_wiersze_tekstu')
     save_path.mkdir(parents=True, exist_ok=True)
     io.imsave(arr=util.img_as_ubyte(img_detected_rows), fname=save_path / '{}.png'.format(img_name))
     ######################### TESTOWE #########################
-    # plt.gcf().set_size_inches(30, 20)
-    # plt.imshow(img_detected_rows,cmap = 'gray'),plt.title('??')
-    # plt.show() 
+
 
     # region = linia tekstu
     label_image = measure.label(img_detected_rows)
     regions = measure.regionprops(label_image)
     width = img_detected_rows.shape[1]
-    regions = [reg for reg in regions if reg.area > width*5] # wiersze powyżej 5 pikseli wysokości
+    # wybieramy wiersze powyżej 5 pikseli wysokości
+    regions = [reg for reg in regions if reg.area > width*5]
+    # wybieramy regiony, które mają pole powierzchniw większe od odchylenia standardowego
     std = np.std([reg.area for reg in regions])/width 
     regions = [reg for reg in regions if reg.area/width > std]
 
     
     # Wynikowy obraz ma mieć czarne tło, a wyrazy w kolejnych wierszach mają mieć wartości 1,2,3...
-    image_result = np.zeros(img_raw.shape, dtype=np.uint8)
+    image_result_fragment = np.zeros(gray_fragment.shape, dtype=np.uint8)
     last_words = []
     for i, region in enumerate(regions, 1):
-        last_word_coords, image_result = detect_words_in_line(image_result=image_result, 
-                                               image_binary=img, 
-                                               coords_of_line=region.coords, 
-                                               row_intensity=((i*1)%256),
-                                               reference_point_to_img_raw=reference_point_to_img_raw)
-
-        last_word_coords = np.array([[el[0]+reference_point_to_img_raw[0],el[1]+reference_point_to_img_raw[1]] for el in last_word_coords])
+        last_word_coords, image_result_fragment = detect_words_in_line(image_result=image_result_fragment, 
+                                                            image_binary=img, 
+                                                            coords_of_line=region.coords, 
+                                                            row_intensity=((i*1)%256),
+                                                            reference_point_to_img_raw=reference_point_to_img_raw)
+        
+        
+        # last_word_coords = np.array([[el[0]+reference_point_to_img_raw[0],el[1]+reference_point_to_img_raw[1]] for el in last_word_coords])
         last_words.append(last_word_coords)
+    
+    # Przekształcamy z powrotem na pochylony obraz jak oryginalnie
+    image_result_fragment = transform.rotate(image_result_fragment, -rotation, preserve_range=True, resize=True)
+    image_result_fragment = resize_after_rotate(img_rotated=image_result_fragment, destination_shape=raw_img_shape)
+
+    # Tworzymy obraz wynikowy majacy wymiary identyczne jak oryginalny.
+    image_result = np.zeros(img_raw.shape, dtype=np.uint8)
+    height = reference_point_to_img_raw[0]
+    width = reference_point_to_img_raw[1]
+    # Wklejamy do niego fragment, na którym pracowaliśmy i zaznaczyliśmy wykryte słowa.
+    image_result[height:height+image_result_fragment.shape[0], width:width+image_result_fragment.shape[1]] = image_result_fragment
+
     # Zapisywanie k-wyrazy 
     # image_result = util.img_as_ubyte(image_result)
     io.imsave(arr=image_result, fname=img_out_path_words)
-    
-    # Utworzenie katalogu dla wycinka indeksu.
-#     number_of_image = re.search('[0-9]+', image_path.stem)[0]
-#     last_word_directory = save_path / number_of_image
-#     last_word_directory.mkdir(parents=True, exist_ok=True)
     
     # Wycięcie indeksu (last_word) z oryginalnego obrazu i dodanie go do listy wszystkich.
     last_word_images = []
@@ -160,14 +195,14 @@ def detect_fragments_with_words(img, img_raw, reference_point_to_img_raw, img_ou
         first_point = last_word_coords[0]
         last_point = last_word_coords[-1]
         
-        last_word_img = img_raw[max(first_point[0]-margin, 0):last_point[0]+margin, first_point[1]:last_point[1]+1] 
-
+        last_word_img = gray_fragment[max(first_point[0]-margin, 0):last_point[0]+margin, first_point[1]:last_point[1]+1] 
         last_word_images.append(last_word_img)
 
     ######################### TESTOWE #########################
     save_path = Path('data/partial_results/3/2_wyciete_indeksy/{}'.format(img_name))
     save_path.mkdir(parents=True, exist_ok=True)
-    for i, img in enumerate(last_word_images):       
+    for i, img in enumerate(last_word_images):  
+        img = util.img_as_ubyte(img)
         io.imsave(arr=img, fname=save_path / '{}.png'.format(i))
     ######################### TESTOWE #########################
     return last_word_images

@@ -35,7 +35,7 @@ def main(input_dir,number_of_img,output_dir):
     print("LICZBA OBRAZÓW WEJŚCIOWYCH: ", len(all_images))
         
     for image_path in all_images:
-        # image_path = Path('data/ocr1/img_12.jpg') # TODO DO USUNIĘCIA
+        # image_path = Path('data/ocr1/img_7.jpg') # TODO DO USUNIĘCIA
         print("############################## {} ##############################".format(image_path))
         image_name = os.path.splitext(os.path.basename(image_path))[0]
         k = re.search('[0-9]+', image_path.stem)[0]
@@ -70,8 +70,13 @@ def main(input_dir,number_of_img,output_dir):
         # plt.show() 
 
         # TODO ROTACJA JEST ZROBIONA A WYNIKOWE OBRAZY TEGO NIE UWZGLĘDNIAJĄ
-        word_areas_from_background_rotated = transform.rotate(word_areas_from_background, rotation)
-        last_word_images = detect_fragments_with_words(word_areas_from_background_rotated, raw_img.copy(), reference_point_to_img_org, img_out_path_words, img_name=k)
+        last_word_images = detect_fragments_with_words(img=word_areas_from_background, 
+                                                        img_raw=raw_img.copy(), 
+                                                        gray_fragment=img_removed_background, 
+                                                        rotation=rotation,
+                                                        reference_point_to_img_raw=reference_point_to_img_org, 
+                                                        img_out_path_words=img_out_path_words, 
+                                                        img_name=k)
         # continue
 
         all_indexes_list = cut_digits_from_index_image(last_word_images, img_name=k)

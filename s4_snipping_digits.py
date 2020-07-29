@@ -262,6 +262,7 @@ def cut_digits_from_index_image(last_word_images, img_name='test'):
         save_path_word.mkdir(parents=True, exist_ok=True)
 
         temp_image = word_image_org.copy()
+        temp_image = util.img_as_ubyte(temp_image)
         temp_image = color.gray2rgb(temp_image)
         ######################### TESTOWE #########################
 
@@ -275,6 +276,7 @@ def cut_digits_from_index_image(last_word_images, img_name='test'):
 
 
             ######################### TESTOWE #########################
+            one_digit = util.img_as_ubyte(one_digit)
             io.imsave(arr=one_digit, fname=save_path_word / '{}.png'.format(index_digit))
 
             # Narysowanie prostokąta wokół cyfry.
