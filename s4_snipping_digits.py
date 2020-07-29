@@ -47,7 +47,9 @@ def get_binary_image_with_digits(word_image, is_grid=True):
     # otsu_regions = np.digitize(image_removed_otsu_region, bins=thresholds)
     # image_digits = (otsu_regions==0)
     
-    # image_digits = morphology.dilation(image_digits, morphology.disk(1)) # DODANE
+    image_digits = morphology.opening(image_digits, morphology.disk(1))
+    image_digits = morphology.closing(image_digits, morphology.disk(1))
+
     
 
     return image_digits
@@ -266,7 +268,6 @@ def cut_digits_from_index_image(last_word_images, img_name='test', is_grid=True)
             # Wycięcie cyfry
             # one_digit =  image_digits[start_point[0]:end_point[0]+1, start_point[1]:end_point[1]+1]
             one_digit =  image_digits[:, start_point[1]:end_point[1]+1]
-
             one_digit = scale_digit_image(one_digit, scale=28)
             index_digits_list.append(one_digit)
 
