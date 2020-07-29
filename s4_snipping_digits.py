@@ -242,11 +242,6 @@ def cut_digits_from_index_image(last_word_images, img_name='test'):
         # word_image = color.rgb2gray(word_image)
         word_image = filters.gaussian(word_image)
 
-
-        # Rozciąganie jasności obrazu.
-        p2, p98 = np.percentile(word_image, (2, 98))
-        word_image = exposure.rescale_intensity(word_image, in_range=(p2, p98))
-
         image_digits = get_binary_image_with_digits(word_image)
 
         regions = get_digits_regions(image_digits)  
@@ -275,7 +270,8 @@ def cut_digits_from_index_image(last_word_images, img_name='test'):
             index_digits_list.append(one_digit)
 
 
-            ######################### TESTOWE #########################
+            ######################### TESTOWE #########################        
+            one_digit = filters.gaussian(one_digit)
             one_digit = util.img_as_ubyte(one_digit)
             io.imsave(arr=one_digit, fname=save_path_word / '{}.png'.format(index_digit))
 
