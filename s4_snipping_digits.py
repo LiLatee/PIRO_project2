@@ -27,19 +27,20 @@ def sort_regions_by_area(regions, descending=True):
     regions = sorted(regions, key=func, reverse=descending)
     return regions
 
-def get_binary_image_with_digits(word_image):
+def get_binary_image_with_digits(word_image, is_grid=True):
     # Multio-Otsu dzieli obraz na 3 klasy o różnych jasnościach.
-    thresholds = filters.threshold_multiotsu(word_image, classes=3)
+    n_classes = 3 if is_grid else 2
+    thresholds = filters.threshold_multiotsu(word_image, classes=n_classes)
 
     # Regions - to obraz, który ma wartości od 0 do 2. 
     # Wartość odpowiada regionowi, do którego należey dany piksel.
     otsu_regions = np.digitize(word_image, bins=thresholds)
 
+
     # Jeden z wykrytych regionów odpowiadał w większości jasności cyfr..
     # Region trzeba traktować jako jakiś przedział wartości jasności w obrazie.
     # image_removed_otsu_region = word_image*util.invert((otsu_regions == 1))
     image_digits = (otsu_regions==0)
-
 
     # Po ponownym wykryciu regionów, jeden z nich pasował do cyfr więc użyłem go licząc, że są to cyfry.
     # thresholds = filters.threshold_multiotsu(image_removed_otsu_region, classes=3)
@@ -220,7 +221,7 @@ def scale_digit_image(image, scale=28):
     return image
 
 
-def cut_digits_from_index_image(last_word_images, img_name='test'):
+def cut_digits_from_index_image(last_word_images, img_name='test', is_grid=True):
     """
     Wycina cyfry z obrazu indeksu i zapisuje wykryte indeksy do k-indeksy.txt.
     
@@ -242,7 +243,7 @@ def cut_digits_from_index_image(last_word_images, img_name='test'):
         # word_image = color.rgb2gray(word_image)
         word_image = filters.gaussian(word_image)
 
-        image_digits = get_binary_image_with_digits(word_image)
+        image_digits = get_binary_image_with_digits(word_image, is_grid=is_grid)
 
         regions = get_digits_regions(image_digits)  
 

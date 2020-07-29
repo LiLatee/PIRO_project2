@@ -36,7 +36,7 @@ def main(input_dir,number_of_img,output_dir):
     print("LICZBA OBRAZÓW WEJŚCIOWYCH: ", len(all_images))
         
     for image_path in all_images:
-        # image_path = Path('data/ocr1/img_1.jpg') # TODO DO USUNIĘCIA
+        # image_path = Path('data/ocr1/img_21.jpg') # TODO DO USUNIĘCIA
         print("############################## {} ##############################".format(image_path))
         image_name = os.path.splitext(os.path.basename(image_path))[0]
         k = re.search('[0-9]+', image_path.stem)[0]
@@ -79,8 +79,8 @@ def main(input_dir,number_of_img,output_dir):
                                                         img_out_path_words=img_out_path_words, 
                                                         img_name=k)
         # continue
-
-        all_indexes_list = cut_digits_from_index_image(last_word_images, img_name=k)
+        is_grid = False if rotation == 0.0 else True
+        all_indexes_list = cut_digits_from_index_image(last_word_images, img_name=k, is_grid=is_grid)
         # print("all_indexes_list: ", len(all_indexes_list))
 
 

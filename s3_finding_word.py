@@ -20,16 +20,26 @@ def resize_after_rotate(img_rotated, destination_shape):
         img_rotated: Przekształcony obraz, na którym dwukrotnie wykonano operacje rotacji o kąt X oraz -X.
         destination_shape: Wymiary obrazu przed obydwoma rotacjami.
     """
+
     diff = (np.array(img_rotated.shape) - np.array(destination_shape))/2
-    new = img_rotated[int(diff[0]):-int(diff[0]), int(diff[1]):-int(diff[1])]
-    
+    if diff[0] == 0.0:
+        new = img_rotated[int(diff[0]):, :]
+    else:
+        new = img_rotated[int(diff[0]):-int(diff[0]),:]
+
+    if diff[1] == 0.0:
+        new = img_rotated[:, int(diff[1]):]
+    else:
+        new = img_rotated[:, int(diff[1]):-int(diff[1])]
+
+
     diff = (np.array(new.shape) - np.array(destination_shape))
     if diff[0] > 0:
         new = new[:-diff[0], :]
     
     if diff[1] > 0:
         new = new[:, :-diff[1]]
-    
+
     new = new.astype(np.uint8)
     return new
 
@@ -173,6 +183,7 @@ def detect_fragments_with_words(img, img_raw, gray_fragment, rotation, reference
         # last_word_coords = np.array([[el[0]+reference_point_to_img_raw[0],el[1]+reference_point_to_img_raw[1]] for el in last_word_coords])
         last_words.append(last_word_coords)
     
+
     # Przekształcamy z powrotem na pochylony obraz jak oryginalnie
     image_result_fragment = transform.rotate(image_result_fragment, -rotation, preserve_range=True, resize=True)
     image_result_fragment = resize_after_rotate(img_rotated=image_result_fragment, destination_shape=raw_img_shape)
