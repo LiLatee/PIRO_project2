@@ -67,11 +67,6 @@ def get_words_from_base_img(img):
     return edges
 
 
-def trh(img):
-    global_thresh = threshold_otsu(img)
-    binary_global = img > global_thresh
-    return binary_global 
-
 
 def sobel_get_img_from_background(img, img_name='test'):    
 
