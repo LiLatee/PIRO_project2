@@ -285,6 +285,7 @@ def cut_digits_from_index_image(last_word_images, img_name='test', is_grid=True)
             # Narysowanie prostokąta wokół cyfry.
             rr, cc = draw.rectangle_perimeter(start_point, end_point, shape=temp_image.shape)         
             temp_image[rr, cc] = (255,0+index_digit*30,0+index_digit*30)
+            io.imsave(arr=temp_image, fname=save_path_img / '{}.png'.format(img_name))
             io.imsave(arr=temp_image, fname=save_path_word / 'index.png')
             ######################### TESTOWE #########################
          

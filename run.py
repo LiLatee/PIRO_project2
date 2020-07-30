@@ -11,7 +11,7 @@ import cv2
 import re
 
 
-from s1_finding_words_areas import get_words_from_base_img, sobel_get_img_from_background
+from s1_finding_text_area import get_words_from_base_img, sobel_get_img_from_background
 from s2_finding_fragment_with_text import detect_fragment_with_text
 from s3_finding_word import detect_fragments_with_words
 from s4_snipping_digits import cut_digits_from_index_image
@@ -27,7 +27,7 @@ from skimage import transform
 def get_all_files_from_catalog(input_dir):
     # TODO dodaj png
     # TODO PRZCZYTAĆ DOKŁADNIE JAK WCZYTYWAĆ PLIKI I ZAPISYWAĆ od 0 czy od 1 itp.
-    all_images = input_dir.glob("*.jpg")
+    all_images = input_dir.glob("*.png")
     return list(all_images)
     
 
@@ -78,8 +78,8 @@ def main(input_dir,number_of_img,output_dir):
                                                         reference_point_to_img_raw=reference_point_to_img_org, 
                                                         img_out_path_words=img_out_path_words, 
                                                         img_name=k)
-        
         all_indexes_list = cut_digits_from_index_image(last_word_images, img_name=k, is_grid=is_grid)
+        continue
         # print("all_indexes_list: ", len(all_indexes_list))
 
         # predict_and_save(all_indexes_list,k)
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 4:
         print("BRAKUJE PARAMETRU WEJŚCIOWEGO")
 
-    print( 'Number of arguments:', len(sys.argv), 'arguments.')
+    print('Number of arguments:', len(sys.argv), 'arguments.')
 
     if os.path.exists(str(sys.argv[1])):
         print('Katalog z danymi', str(sys.argv[1]))
@@ -113,7 +113,7 @@ if __name__ == "__main__":
         print('Nie ma katalogu o podanej ścieżce: ', str(sys.argv[1]))
         exit()
 
-    print( 'Ilośc obrazkóœ', str(sys.argv[2]))
+    print( 'Liczba obrazków', str(sys.argv[2]))
     number_of_img = int(sys.argv[2])
 
     if os.path.exists(str(sys.argv[3])):
