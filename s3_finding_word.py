@@ -97,8 +97,22 @@ def get_regions_of_rows(img_detected_rows, img_name='test'):
         closest_reg_height = np.max(closest_reg.coords[:, 0])
         reg_height = np.max(reg.coords[:, 0])
 
-        img_detected_rows[min(reg_height, closest_reg_height):max(reg_height, closest_reg_height), :] = np.iinfo(img_detected_rows.dtype).max
+        img_detected_rows[min(reg_height, closest_reg_height):max(reg_height, closest_reg_height)+1, :] = np.iinfo(img_detected_rows.dtype).max
     
+    # teraz szukamy przerw między wierszami i zbyt małe usuwamy, bo prawdopodobnie wiersz się nam podzielił
+    img_inv = util.invert(img_detected_rows) 
+    img_label = measure.label(img_inv)
+    regions = measure.regionprops(img_label)[1:-1] # po odwórceniu nie chcemy górnej i dolnej krawędzi
+    std = np.std([reg.area for reg in regions])/img_detected_rows.shape[1]
+    
+    small_regions = [reg for reg in regions if reg.area/img_detected_rows.shape[1] <= std*0.5]
+
+    for reg in small_regions:
+        p1 = reg.coords[0]
+        p2 = reg.coords[-1]
+        img_detected_rows[p1[0]:p2[0]+1, p1[1]:p2[1]+1] = np.iinfo(img_detected_rows.dtype).max
+
+
     label_image = measure.label(img_detected_rows)
     regions = measure.regionprops(label_image)
 
@@ -222,10 +236,7 @@ def detect_fragments_with_words(img, img_raw, gray_fragment, rotation, reference
     io.imsave(arr=util.img_as_ubyte(img_detected_rows), fname=save_path / '{}_1.png'.format(img_name))
     ######################### TESTOWE #########################
 
-    print('1')
     regions = get_regions_of_rows(img_detected_rows, img_name=img_name)
-    print('2')
-
     
     # Wynikowy obraz ma mieć czarne tło, a wyrazy w kolejnych wierszach mają mieć wartości 1,2,3...
     image_result_fragment = np.zeros(gray_fragment.shape, dtype=np.uint8)
