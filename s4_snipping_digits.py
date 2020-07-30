@@ -281,7 +281,7 @@ def cut_digits_from_index_image(last_word_images, img_name='test', is_grid=True,
 
             ######################### TESTOWE #########################    
             if is_test:    
-                # one_digit = filters.gaussian(one_digit)
+                one_digit = filters.gaussian(one_digit)
                 one_digit = util.img_as_ubyte(one_digit)
                 io.imsave(arr=one_digit, fname=save_path_word / '{}.png'.format(index_digit))
 

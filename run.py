@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
     # args = parser.parse_args()
     # is_test = args['test']
-    is_test = False
+    is_test = True
 
     input_dir = ''
     number_of_img = 0
