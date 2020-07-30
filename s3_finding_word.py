@@ -75,6 +75,71 @@ def detect_lines_of_text(img):
                 
     return img
             
+def get_regions_of_rows(img_detected_rows, img_name='test'):
+    # region = linia tekstu
+    label_image = measure.label(img_detected_rows)
+    regions = measure.regionprops(label_image)
+    width = img_detected_rows.shape[1]
+
+    # wybieramy wiersze powyżej 5 pikseli wysokości
+    # regions = [reg for reg in regions if reg.area > width*5]
+
+    # wybieramy regiony, które mają pole powierzchni większe od odchylenia standardowego
+    std = np.std([reg.area for reg in regions])/width 
+
+    big_regions = [reg for reg in regions if reg.area/img_detected_rows.shape[1] > std*0.75]
+    small_regions = [reg for reg in regions if reg.area/img_detected_rows.shape[1] <= std*0.75]
+
+    img_detected_rows = util.img_as_ubyte(img_detected_rows)
+    for reg in small_regions:
+        closest_reg = find_closest_region(all_regions=big_regions, region=reg)
+        
+        closest_reg_height = np.max(closest_reg.coords[:, 0])
+        reg_height = np.max(reg.coords[:, 0])
+
+        img_detected_rows[min(reg_height, closest_reg_height):max(reg_height, closest_reg_height), :] = np.iinfo(img_detected_rows.dtype).max
+    
+    label_image = measure.label(img_detected_rows)
+    regions = measure.regionprops(label_image)
+
+    ######################### TESTOWE #########################
+    save_path = Path('data/partial_results/3/1_wykryte_wiersze_tekstu')
+    save_path.mkdir(parents=True, exist_ok=True)
+    io.imsave(arr=util.img_as_ubyte(img_detected_rows), fname=save_path / '{}_2.png'.format(img_name))
+    ######################### TESTOWE #########################
+
+    return regions
+
+
+def find_closest_region(all_regions, region):
+    """
+        Wyszukuje najbliższy region względem osi Y (wysokość obrazu).
+        
+    """
+    region_y_min = np.min(region.coords[:, 0])
+    region_y_max = np.max(region.coords[:, 0])
+
+    temp_distance = np.inf
+    closest_region = None
+    for reg in all_regions:
+        current_reg_y_min = np.min(reg.coords[:, 0])
+        current_reg_y_max = np.max(reg.coords[:, 0])
+        
+        is_reg_higher = True
+        if current_reg_y_min > region_y_min:
+            is_reg_higher = False
+        
+        if is_reg_higher:
+            diff = region_y_min - current_reg_y_max
+        else:
+            diff = current_reg_y_min - region_y_max
+
+        if diff < temp_distance:
+            temp_distance = diff
+            closest_region = reg
+    
+    return closest_region
+
 
 def detect_words_in_line(image_result, image_binary, coords_of_line, reference_point_to_img_raw, row_intensity=255):
     # wycinamy kawałek obrazu będącego linią tekstu i obracamy go (.T)
@@ -154,19 +219,12 @@ def detect_fragments_with_words(img, img_raw, gray_fragment, rotation, reference
     ######################### TESTOWE #########################
     save_path = Path('data/partial_results/3/1_wykryte_wiersze_tekstu')
     save_path.mkdir(parents=True, exist_ok=True)
-    io.imsave(arr=util.img_as_ubyte(img_detected_rows), fname=save_path / '{}.png'.format(img_name))
+    io.imsave(arr=util.img_as_ubyte(img_detected_rows), fname=save_path / '{}_1.png'.format(img_name))
     ######################### TESTOWE #########################
 
-
-    # region = linia tekstu
-    label_image = measure.label(img_detected_rows)
-    regions = measure.regionprops(label_image)
-    width = img_detected_rows.shape[1]
-    # wybieramy wiersze powyżej 5 pikseli wysokości
-    regions = [reg for reg in regions if reg.area > width*5]
-    # wybieramy regiony, które mają pole powierzchniw większe od odchylenia standardowego
-    std = np.std([reg.area for reg in regions])/width 
-    regions = [reg for reg in regions if reg.area/width > std]
+    print('1')
+    regions = get_regions_of_rows(img_detected_rows, img_name=img_name)
+    print('2')
 
     
     # Wynikowy obraz ma mieć czarne tło, a wyrazy w kolejnych wierszach mają mieć wartości 1,2,3...
