@@ -15,8 +15,8 @@ class CNN_model:
 
     
     def __init__(self):
-        self.epochs = 10
-        self.batch_size = 86
+        self.epochs = 20
+        self.batch_size = 64
         self.model = models.Sequential()
         self.model.add(layers.Conv2D(filters=32, kernel_size=(5, 5), activation="relu", padding="same", input_shape=(28, 28, 1)))
         self.model.add(layers.MaxPooling2D(pool_size=(2, 2)))
@@ -26,7 +26,7 @@ class CNN_model:
         self.model.add(layers.Dropout(0.25))
         self.model.add(layers.Conv2D(filters=128, kernel_size=(5, 5), activation="relu", padding="same"))
         self.model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-        self.model.add(layers.Dropout(0.25))
+        self.model.add(layers.Dropout(0.5))
         self.model.add(layers.Conv2D(filters=256, kernel_size=(5, 5), activation="relu", padding="same"))
         
         self.model.add(layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
@@ -35,10 +35,6 @@ class CNN_model:
         self.model.add(layers.Dense(256, activation="relu"))
         self.model.add(layers.Dropout(0.5))
         self.model.add(layers.Dense(10, activation="softmax"))
-       
-        self.model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["acc"])
-        
-        self.load_model()
         
     def learning(self,X_train, X_valid, y_train, y_valid,model_name):
         learning_rate_reduction = callbacks.ReduceLROnPlateau(monitor='val_acc', patience=3, verbose=1, factor=0.5, min_lr=0.00001)
@@ -72,7 +68,7 @@ class CNN_model:
         plt.grid(True)
         plt.legend()
         
-    def load_model(self, model_name = 'model_2'):
+    def load_model(self, model_name = 'model_4'):
         self.model = keras.models.load_model('models/'+model_name)
         print("SUCC LOADED")
     

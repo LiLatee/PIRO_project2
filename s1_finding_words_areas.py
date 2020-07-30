@@ -73,7 +73,7 @@ def trh(img):
 
 def sobel_get_img_from_background(img, img_name='test'):  
     img = util.img_as_ubyte(img)  
-    rotation = hugh_and_rotation(img)
+    rotation,grid = hugh_and_rotation(img)
     laplacian = cv2.Laplacian(img,cv2.CV_64F)
     sobelx = cv2.Sobel(img,cv2.CV_64F,1,0,ksize=7)
     sobely = cv2.Sobel(sobelx,cv2.CV_64F,0,1,ksize=7)
@@ -118,7 +118,7 @@ def sobel_get_img_from_background(img, img_name='test'):
     io.imsave(arr=new_image, fname=save_path / (img_name+'.png'))
     ######################### TESTOWE #########################
 
-    return new_image,rotation
+    return new_image,rotation,grid
 
 
 
@@ -133,6 +133,7 @@ def hugh_and_rotation(image):
     gradient = cv2.morphologyEx(image, cv2.MORPH_GRADIENT, kernelg)
     edges = cv2.Canny(gradient,100,100)
     angle  = 0
+    grid = True
     # plt.gcf().set_size_inches(11, 7)
     # plt.imshow(gradient,cmap = 'gray'),plt.title('closing1')
     # plt.show()
@@ -162,14 +163,16 @@ def hugh_and_rotation(image):
 #     ax[2].set_xlim((0, image.shape[1]))
 #     ax[2].set_ylim((image.shape[0], 0))
 #     ax[2].set_title('Probabilistic Hough')
-    
+    if len(lines) <3:
+        grid = False
+
     if len(lines) > 0:
         angle = get_angle(lines[0])
         image = rotate(image, angle)
         # print(angle)
 
     
-    return angle
+    return angle,grid
     
     
 # img = cv2.imread(OBRAZY+'/img_20.png',0)
