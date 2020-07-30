@@ -22,16 +22,15 @@ def resize_after_rotate(img_rotated, destination_shape):
     """
 
     diff = (np.array(img_rotated.shape) - np.array(destination_shape))/2
-    if diff[0] == 0.0:
+    
+    if diff[0] == 0.0 and diff[1] == 0.0:
+        new = img_rotated
+    elif diff[0] == 0.0:
+        new = img_rotated[:, int(diff[1]):]
+    elif diff[1] == 0.0:
         new = img_rotated[int(diff[0]):, :]
     else:
-        new = img_rotated[int(diff[0]):-int(diff[0]),:]
-
-    if diff[1] == 0.0:
-        new = img_rotated[:, int(diff[1]):]
-    else:
-        new = img_rotated[:, int(diff[1]):-int(diff[1])]
-
+        new = img_rotated[int(diff[0]):-int(diff[0]), int(diff[1]):-int(diff[1])]
 
     diff = (np.array(new.shape) - np.array(destination_shape))
     if diff[0] > 0:
@@ -155,11 +154,10 @@ def find_closest_region(all_regions, region):
     return closest_region
 
 
-def detect_words_in_line(image_result, image_binary, coords_of_line, reference_point_to_img_raw, row_intensity=255):
+def detect_words_in_line(image_result, image_binary, coords_of_line, row_intensity=255):
     # wycinamy kawałek obrazu będącego linią tekstu i obracamy go (.T)
     line_img = get_slice_of_image_with_specific_coords(image=image_binary, coords=coords_of_line).T
-    line_img = thresholding(line_img)
-    # print(line_img.shape)
+
     line_img = morphology.dilation(line_img, morphology.disk(13))
     
     # szukamy miejsc, w których jasność jest większa od 0.0 i te miejsca zaznaczamy w wycinku obrazu
@@ -169,7 +167,6 @@ def detect_words_in_line(image_result, image_binary, coords_of_line, reference_p
     line_img = util.img_as_ubyte(line_img)
     for i, row in enumerate(line_img):
         if np.mean(row) > 0.0:
-#             line_img[i:i+1, :] = (255, 0, 0)
             line_img[i:i+1, :] = row_intensity
     # znowu obracamy, tekst biegnie od lewej do prawej
     line_img = line_img.T
@@ -198,7 +195,7 @@ def detect_words_in_line(image_result, image_binary, coords_of_line, reference_p
     # zamieniamy ten wycinek obrazu w całym obrazie
     first_point = coords_of_line[0]
     last_point = coords_of_line[-1]
-    # image_result[first_point[0]+reference_point_to_img_raw[0]:last_point[0]+reference_point_to_img_raw[0]+1, first_point[1]+reference_point_to_img_raw[1]:last_point[1]+reference_point_to_img_raw[1]+1] = line_img
+
     image_result[first_point[0]:last_point[0]+1, first_point[1]:last_point[1]+1] = line_img
     return last_word_coords, image_result
 
@@ -225,8 +222,9 @@ def detect_fragments_with_words(img, img_raw, gray_fragment, rotation, reference
     
     """    
     # Wyrównujemy tekst, aby był jak najbardziej poziomo.
-    raw_img_shape = img.shape
+    img_shape = img.shape
     img = transform.rotate(img, rotation, resize=True, preserve_range=True)
+    img = thresholding(img)
     gray_fragment = transform.rotate(gray_fragment, rotation, resize=True, preserve_range=True)
 
     img_detected_rows = detect_lines_of_text(util.img_as_float(img.copy()))
@@ -245,8 +243,7 @@ def detect_fragments_with_words(img, img_raw, gray_fragment, rotation, reference
         last_word_coords, image_result_fragment = detect_words_in_line(image_result=image_result_fragment, 
                                                             image_binary=img, 
                                                             coords_of_line=region.coords, 
-                                                            row_intensity=((i*1)%256),
-                                                            reference_point_to_img_raw=reference_point_to_img_raw)
+                                                            row_intensity=((i*1)%256))
         
         
         # last_word_coords = np.array([[el[0]+reference_point_to_img_raw[0],el[1]+reference_point_to_img_raw[1]] for el in last_word_coords])
@@ -255,7 +252,8 @@ def detect_fragments_with_words(img, img_raw, gray_fragment, rotation, reference
 
     # Przekształcamy z powrotem na pochylony obraz jak oryginalnie
     image_result_fragment = transform.rotate(image_result_fragment, -rotation, preserve_range=True, resize=True)
-    image_result_fragment = resize_after_rotate(img_rotated=image_result_fragment, destination_shape=raw_img_shape)
+    image_result_fragment = resize_after_rotate(img_rotated=image_result_fragment, destination_shape=img_shape)
+
 
     # Tworzymy obraz wynikowy majacy wymiary identyczne jak oryginalny.
     image_result = np.zeros(img_raw.shape, dtype=np.uint8)

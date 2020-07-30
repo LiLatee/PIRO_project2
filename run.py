@@ -78,7 +78,7 @@ def main(input_dir,number_of_img,output_dir):
                                                         reference_point_to_img_raw=reference_point_to_img_org, 
                                                         img_out_path_words=img_out_path_words, 
                                                         img_name=k)
-        # continue
+        
         is_grid = False if rotation == 0.0 else True
         all_indexes_list = cut_digits_from_index_image(last_word_images, img_name=k, is_grid=is_grid)
         # print("all_indexes_list: ", len(all_indexes_list))
@@ -86,7 +86,6 @@ def main(input_dir,number_of_img,output_dir):
 
         analyze_and_predict(all_indexes_list, out_path_indexes)
 
-        # break
 
 
 

@@ -114,8 +114,6 @@ def detect_fragment_with_text(img, img_raw, img_name="test"):
     end_point_width = int(width_max+img_width*0.25)
     
     # Wycięcie tego prostokątu z oryginalnego obrazu.
-#     img_raw_path = Path('../data/ocr1') / str(image_path.stem + ".jpg")
-#     img_raw = io.imread(img_raw_path)
     img_slice = img_raw[start_point_height:end_point_height, start_point_width:end_point_width]
     
     # Na wycinkach nadal czasami pojawia się stół. Więc usuwamy te fragmenty.
