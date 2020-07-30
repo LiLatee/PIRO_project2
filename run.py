@@ -57,7 +57,7 @@ def main(input_dir,number_of_img,output_dir):
         # plt.gcf().set_size_inches(30, 20)
         # plt.imshow(img_removed_background,cmap = 'gray'),plt.title('??')
         # plt.show() 
-        word_areas_from_background, rotation,grid  = sobel_get_img_from_background(img_removed_background, img_name=k) 
+        word_areas_from_background, rotation, is_grid  = sobel_get_img_from_background(img_removed_background, img_name=k) 
         # io.imshow(word_areas_from_background)
         # plt.show()
         # print("rotation: ", rotation)
@@ -79,13 +79,12 @@ def main(input_dir,number_of_img,output_dir):
                                                         img_out_path_words=img_out_path_words, 
                                                         img_name=k)
         
-        is_grid = False if rotation == 0.0 else True
         all_indexes_list = cut_digits_from_index_image(last_word_images, img_name=k, is_grid=is_grid)
         # print("all_indexes_list: ", len(all_indexes_list))
 
-        predict_and_save(all_indexes_list,k)
+        # predict_and_save(all_indexes_list,k)
 
-        # analyze_and_predict(all_indexes_list, out_path_indexes)
+        analyze_and_predict(all_indexes_list, out_path_indexes)
 
 
 

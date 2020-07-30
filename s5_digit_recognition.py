@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import json
+import cv2
+
 from skimage import io
 from pathlib import Path
 from skimage import util
@@ -10,6 +12,7 @@ from NN_digit_recognition import CNN_model
 def analyze_and_predict(all_indexes_list,out_path_indexes):
 
     cnn_agent = CNN_model()
+    cnn_agent.load_model('model_4') # TODO
     
     words_true = []
     words_X = []
@@ -26,8 +29,8 @@ def analyze_and_predict(all_indexes_list,out_path_indexes):
         for digit in row:
             # print(digit.shape)
             # print(np.expand_dims(digit, axis=2).shape)
-            
             try:
+                digit = cv2.normalize(digit, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
                 temp_row_digits.append(np.expand_dims(digit, axis=2))
                 # X_rows.append(np.expand_dims(digit, axis=2))
             except:

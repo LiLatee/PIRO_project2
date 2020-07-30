@@ -29,8 +29,9 @@ def sort_regions_by_area(regions, descending=True):
 
 def get_binary_image_with_digits(word_image, is_grid=True):
     # Multio-Otsu dzieli obraz na 3 klasy o różnych jasnościach.
-    # n_classes = 3 if is_grid else 2 # TODO
+    n_classes = 4 if is_grid else 2 # TODO
     n_classes = 4
+    
     thresholds = filters.threshold_multiotsu(word_image, classes=n_classes)
 
     # Regions - to obraz, który ma wartości od 0 do 2. 
@@ -277,7 +278,7 @@ def cut_digits_from_index_image(last_word_images, img_name='test', is_grid=True)
 
 
             ######################### TESTOWE #########################        
-            one_digit = filters.gaussian(one_digit)
+            # one_digit = filters.gaussian(one_digit)
             one_digit = util.img_as_ubyte(one_digit)
             io.imsave(arr=one_digit, fname=save_path_word / '{}.png'.format(index_digit))
 
