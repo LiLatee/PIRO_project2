@@ -228,7 +228,7 @@ def scale_digit_image(image, scale=28):
     return image
 
 
-def cut_digits_from_index_image(last_word_images, img_name='test', is_grid=True):
+def cut_digits_from_index_image(last_word_images, img_name='test', is_grid=True, is_test=False):
     """
     Wycina cyfry z obrazu indeksu i zapisuje wykryte indeksy do k-indeksy.txt.
     
@@ -238,8 +238,9 @@ def cut_digits_from_index_image(last_word_images, img_name='test', is_grid=True)
     """   
 
     ######################### TESTOWE #########################
-    save_path_img = Path('data/partial_results/4/1_wyciete_cyfry/{}'.format(img_name))
-    save_path_img.mkdir(parents=True, exist_ok=True)
+    if is_test:
+        save_path_img = Path('data/partial_results/4/1_wyciete_cyfry/{}'.format(img_name))
+        save_path_img.mkdir(parents=True, exist_ok=True)
     ######################### TESTOWE #########################
     
     all_indexes_list = []
@@ -261,12 +262,13 @@ def cut_digits_from_index_image(last_word_images, img_name='test', is_grid=True)
         
 
         ######################### TESTOWE #########################
-        save_path_word = save_path_img / str(i)
-        save_path_word.mkdir(parents=True, exist_ok=True)
+        if is_test:
+            save_path_word = save_path_img / str(i)
+            save_path_word.mkdir(parents=True, exist_ok=True)
 
-        temp_image = word_image_org.copy()
-        temp_image = util.img_as_ubyte(temp_image)
-        temp_image = color.gray2rgb(temp_image)
+            temp_image = word_image_org.copy()
+            temp_image = util.img_as_ubyte(temp_image)
+            temp_image = color.gray2rgb(temp_image)
         ######################### TESTOWE #########################
 
         for index_digit, (start_point, end_point) in enumerate(rect_points_sorted_by_distance_to_start_of_horizontal_axis):           
@@ -277,16 +279,17 @@ def cut_digits_from_index_image(last_word_images, img_name='test', is_grid=True)
             index_digits_list.append(one_digit)
 
 
-            ######################### TESTOWE #########################        
-            # one_digit = filters.gaussian(one_digit)
-            one_digit = util.img_as_ubyte(one_digit)
-            io.imsave(arr=one_digit, fname=save_path_word / '{}.png'.format(index_digit))
+            ######################### TESTOWE #########################    
+            if is_test:    
+                # one_digit = filters.gaussian(one_digit)
+                one_digit = util.img_as_ubyte(one_digit)
+                io.imsave(arr=one_digit, fname=save_path_word / '{}.png'.format(index_digit))
 
-            # Narysowanie prostokąta wokół cyfry.
-            rr, cc = draw.rectangle_perimeter(start_point, end_point, shape=temp_image.shape)         
-            temp_image[rr, cc] = (255,0+index_digit*30,0+index_digit*30)
-            io.imsave(arr=temp_image, fname=save_path_img / '{}.png'.format(img_name))
-            io.imsave(arr=temp_image, fname=save_path_word / 'index.png')
+                # Narysowanie prostokąta wokół cyfry.
+                rr, cc = draw.rectangle_perimeter(start_point, end_point, shape=temp_image.shape)         
+                temp_image[rr, cc] = (255,0+index_digit*30,0+index_digit*30)
+                io.imsave(arr=temp_image, fname=save_path_img / '{}.png'.format(i))
+                io.imsave(arr=temp_image, fname=save_path_word / 'index.png')
             ######################### TESTOWE #########################
          
         all_indexes_list.append(index_digits_list)

@@ -71,7 +71,7 @@ def trh(img):
     binary_global = img > global_thresh
     return binary_global 
 
-def sobel_get_img_from_background(img, img_name='test'):  
+def sobel_get_img_from_background(img, img_name='test', is_test=False):  
     img = util.img_as_ubyte(img)  
     rotation,grid = hugh_and_rotation(img)
     laplacian = cv2.Laplacian(img,cv2.CV_64F)
@@ -113,9 +113,10 @@ def sobel_get_img_from_background(img, img_name='test'):
     new_image = img_as_ubyte(new_img)
     
     ######################### TESTOWE #########################
-    save_path = Path('data/partial_results/1/2_kontury_wyrazow_na_fragmencie')
-    save_path.mkdir(parents=True, exist_ok=True)
-    io.imsave(arr=new_image, fname=save_path / (img_name+'.png'))
+    if is_test:
+        save_path = Path('data/partial_results/1/2_kontury_wyrazow_na_fragmencie')
+        save_path.mkdir(parents=True, exist_ok=True)
+        io.imsave(arr=new_image, fname=save_path / (img_name+'.png'))
     ######################### TESTOWE #########################
 
     return new_image,rotation,grid

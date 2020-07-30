@@ -37,10 +37,10 @@ def analyze_and_predict(all_indexes_list,out_path_indexes):
                 pass
         X_rows.append(np.array(temp_row_digits))
     numbers_on_page = []
-    for X_row in X_rows:
-        pred = cnn_agent.predict_only_X(X_row)
-        number = ''
-        with open(out_path_indexes, 'a') as f:            
+    with open(out_path_indexes, 'w') as f:  
+        for X_row in X_rows:
+            pred = cnn_agent.predict_only_X(X_row)
+            number = ''                
             for digit in pred:
                 number += str(digit)
             f.write("%s\n" % number)

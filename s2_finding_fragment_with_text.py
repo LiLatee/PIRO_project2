@@ -79,7 +79,7 @@ def remove_background(img):
     return img, reference
 
 
-def detect_fragment_with_text(img, img_raw, img_name="test"):
+def detect_fragment_with_text(img, img_raw, img_name="test", is_test=False):
     """
     Parameters:
     img: Na wejście dostaje obraz binarny, gdzie wykryte tekst jest wskazywany przez 1, a reszta to 0.
@@ -125,9 +125,10 @@ def detect_fragment_with_text(img, img_raw, img_name="test"):
     reference_point_to_img_raw = np.array([start_point_height, start_point_width]) + reference
 
     ######################### TESTOWE #########################
-    save_path = Path('data/partial_results/2_wyciete_fragmenty')
-    save_path.mkdir(parents=True, exist_ok=True)
-    io.imsave(arr=util.img_as_ubyte(img_removed_background), fname=save_path / (img_name+'.png'))
+    if is_test:
+        save_path = Path('data/partial_results/2_wyciete_fragmenty')
+        save_path.mkdir(parents=True, exist_ok=True)
+        io.imsave(arr=util.img_as_ubyte(img_removed_background), fname=save_path / (img_name+'.png'))
     ######################### TESTOWE #########################
 
 

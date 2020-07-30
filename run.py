@@ -9,7 +9,7 @@ from os import walk,listdir
 from os.path import isfile, join
 import cv2
 import re
-
+import argparse
 
 from s1_finding_text_area import get_words_from_base_img, sobel_get_img_from_background
 from s2_finding_fragment_with_text import detect_fragment_with_text
@@ -31,7 +31,7 @@ def get_all_files_from_catalog(input_dir):
     return list(all_images)
     
 
-def main(input_dir,number_of_img,output_dir):
+def main(input_dir, number_of_img, output_dir, is_test=False):
     all_images = get_all_files_from_catalog(input_dir)
     print("LICZBA OBRAZÓW WEJŚCIOWYCH: ", len(all_images))
         
@@ -52,12 +52,12 @@ def main(input_dir,number_of_img,output_dir):
         # plt.gcf().set_size_inches(30, 20)
         # plt.imshow(words_areas,cmap = 'gray'),plt.title('??')
         # plt.show() 
-        img_removed_background, reference_point_to_img_org = detect_fragment_with_text(img=words_areas, img_raw=raw_img.copy(), img_name=k)    
+        img_removed_background, reference_point_to_img_org = detect_fragment_with_text(img=words_areas, img_raw=raw_img.copy(), img_name=k, is_test=is_test)    
         
         # plt.gcf().set_size_inches(30, 20)
         # plt.imshow(img_removed_background,cmap = 'gray'),plt.title('??')
         # plt.show() 
-        word_areas_from_background, rotation, is_grid  = sobel_get_img_from_background(img_removed_background, img_name=k) 
+        word_areas_from_background, rotation, is_grid  = sobel_get_img_from_background(img_removed_background, img_name=k, is_test=is_test) 
         # io.imshow(word_areas_from_background)
         # plt.show()
         # print("rotation: ", rotation)
@@ -77,9 +77,9 @@ def main(input_dir,number_of_img,output_dir):
                                                         rotation=rotation,
                                                         reference_point_to_img_raw=reference_point_to_img_org, 
                                                         img_out_path_words=img_out_path_words, 
-                                                        img_name=k)
-        all_indexes_list = cut_digits_from_index_image(last_word_images, img_name=k, is_grid=is_grid)
-        continue
+                                                        img_name=k,
+                                                        is_test=is_test)
+        all_indexes_list = cut_digits_from_index_image(last_word_images, img_name=k, is_grid=is_grid, is_test=is_test)
         # print("all_indexes_list: ", len(all_indexes_list))
 
         # predict_and_save(all_indexes_list,k)
@@ -95,6 +95,13 @@ def main(input_dir,number_of_img,output_dir):
 
 
 if __name__ == "__main__":
+    # TODO
+    # parser = argparse.ArgumentParser() 
+    # parser.add_argument('--test', action='store_true')
+
+    # args = parser.parse_args()
+    # is_test = args['test']
+    is_test = False
 
     input_dir = ''
     number_of_img = 0
@@ -129,4 +136,4 @@ if __name__ == "__main__":
     
 
 
-    main(input_dir,number_of_img,output_dir)
+    main(input_dir, number_of_img, output_dir, is_test=is_test)

@@ -74,7 +74,7 @@ def detect_lines_of_text(img):
                 
     return img
             
-def get_regions_of_rows(img_detected_rows, img_name='test'):
+def get_regions_of_rows(img_detected_rows, img_name='test', is_test=False):
     # region = linia tekstu
     label_image = measure.label(img_detected_rows)
     regions = measure.regionprops(label_image)
@@ -116,9 +116,10 @@ def get_regions_of_rows(img_detected_rows, img_name='test'):
     regions = measure.regionprops(label_image)
 
     ######################### TESTOWE #########################
-    save_path = Path('data/partial_results/3/1_wykryte_wiersze_tekstu')
-    save_path.mkdir(parents=True, exist_ok=True)
-    io.imsave(arr=util.img_as_ubyte(img_detected_rows), fname=save_path / '{}_2.png'.format(img_name))
+    if is_test:
+        save_path = Path('data/partial_results/3/1_wykryte_wiersze_tekstu')
+        save_path.mkdir(parents=True, exist_ok=True)
+        io.imsave(arr=util.img_as_ubyte(img_detected_rows), fname=save_path / '{}_2.png'.format(img_name))
     ######################### TESTOWE #########################
 
     return regions
@@ -211,7 +212,7 @@ def get_slice_of_image_with_specific_coords(image, coords):
     return slice_image
 
 
-def detect_fragments_with_words(img, img_raw, gray_fragment, rotation, reference_point_to_img_raw, img_out_path_words, img_name='test'):
+def detect_fragments_with_words(img, img_raw, gray_fragment, rotation, reference_point_to_img_raw, img_out_path_words, img_name='test', is_test=False):
     """
     Zapisuje k-wyrazy.png oraz wykrywa fragmenty obrazu reprezentującego indeksy.
     
@@ -233,12 +234,13 @@ def detect_fragments_with_words(img, img_raw, gray_fragment, rotation, reference
     img_detected_rows = detect_lines_of_text(util.img_as_float(img.copy()))
     ######################### TESTOWE #########################
     fragment = gray_fragment.copy()
-    save_path = Path('data/partial_results/3/1_wykryte_wiersze_tekstu')
-    save_path.mkdir(parents=True, exist_ok=True)
-    io.imsave(arr=util.img_as_ubyte(img_detected_rows), fname=save_path / '{}_1.png'.format(img_name))
+    if is_test:  
+        save_path = Path('data/partial_results/3/1_wykryte_wiersze_tekstu')
+        save_path.mkdir(parents=True, exist_ok=True)
+        io.imsave(arr=util.img_as_ubyte(img_detected_rows), fname=save_path / '{}_1.png'.format(img_name))
     ######################### TESTOWE #########################
 
-    regions = get_regions_of_rows(img_detected_rows, img_name=img_name)
+    regions = get_regions_of_rows(img_detected_rows, img_name=img_name, is_test=is_test)
     
     # Wynikowy obraz ma mieć czarne tło, a wyrazy w kolejnych wierszach mają mieć wartości 1,2,3...
     image_result_fragment = np.zeros(gray_fragment.shape, dtype=np.uint8)
@@ -282,15 +284,16 @@ def detect_fragments_with_words(img, img_raw, gray_fragment, rotation, reference
         last_word_images.append(last_word_img)
 
     ######################### TESTOWE #########################
-    save_path = Path('data/partial_results/3/3_dzielenie_wyrazow/')
-    save_path.mkdir(parents=True, exist_ok=True)
-    io.imsave(arr=fragment, fname=save_path / '{}.png'.format(img_name))
+    if is_test:
+        save_path = Path('data/partial_results/3/3_dzielenie_wyrazow/')
+        save_path.mkdir(parents=True, exist_ok=True)
+        io.imsave(arr=fragment, fname=save_path / '{}.png'.format(img_name))
 
 
-    save_path = Path('data/partial_results/3/2_wyciete_indeksy/{}'.format(img_name))
-    save_path.mkdir(parents=True, exist_ok=True)
-    for i, img in enumerate(last_word_images):  
-        img = util.img_as_ubyte(img)
-        io.imsave(arr=img, fname=save_path / '{}.png'.format(i))
+        save_path = Path('data/partial_results/3/2_wyciete_indeksy/{}'.format(img_name))
+        save_path.mkdir(parents=True, exist_ok=True)
+        for i, img in enumerate(last_word_images):  
+            img = util.img_as_ubyte(img)
+            io.imsave(arr=img, fname=save_path / '{}.png'.format(i))
     ######################### TESTOWE #########################
     return last_word_images
