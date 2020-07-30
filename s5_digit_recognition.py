@@ -1,6 +1,6 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import json
+# import matplotlib.pyplot as plt
+# import json
 import cv2
 
 from skimage import io
@@ -9,18 +9,16 @@ from skimage import util
 
 from NN_digit_recognition import CNN_model
 
-def analyze_and_predict(all_indexes_list,out_path_indexes):
+def analyze_and_predict(all_indexes_list,out_path_indexes,cnn_agent_=CNN_model()):
 
-    cnn_agent = CNN_model()
-    cnn_agent.load_model('model_4') # TODO
+    cnn_agent = cnn_agent_
+    # cnn_agent.load_model('model_4') # TODO
     
     words_true = []
     words_X = []
     words_y = []
-    
     X_rows = []
     y_images = []
-
 
     for row in all_indexes_list:
         if len(row) < 1:

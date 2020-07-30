@@ -6,14 +6,14 @@ from skimage import exposure
 from skimage import color
 from skimage import util
 from skimage import morphology
-from matplotlib import pyplot as plt
+# #from matplotlib import pyplot as plt
 
 import numpy as np
 
 # TESTOWE
 from skimage import io
 from skimage import draw
-from matplotlib import pyplot as plt
+# #from matplotlib import pyplot as plt
 
 # rect_points - (start_point, end_point), where p0 is top-left corner, p1 is down-right corner
 def euclidean_distance(p1, p2):

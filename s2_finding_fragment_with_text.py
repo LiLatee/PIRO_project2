@@ -6,7 +6,7 @@ import numpy as np
 from pathlib import Path
 from skimage import io
 from skimage import util
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 
 
 def remove_outliers_centroids(data, quantile_height=0.9, quantile_width=0.9):
