@@ -7,7 +7,7 @@ from skimage import color
 from skimage import util
 from skimage import morphology
 from matplotlib import pyplot as plt
-
+import math
 import numpy as np
 
 # TESTOWE
@@ -70,7 +70,6 @@ def get_digits_regions(image_digits):
     regions_width = [(np.max(reg.coords[:, 1]) - np.min(reg.coords[:, 1])) for reg in regions]
     regions = [reg for i, reg in enumerate(regions) if regions_width[i] < width/3]
 
-#     print("liczba wykrytych regionów (cyfr): ", len(regions))
     
     
     return regions
@@ -139,7 +138,7 @@ def combine_two_overlapping_regions(reg1, reg2):
         
     return new_start_point, new_end_point
 
-def get_list_of_rectangle_points(regions):
+def get_list_of_rectangle_points(regions, image_digits):
     rect_points = [get_two_points_to_create_rectangle_from_region(reg) for reg in regions]
     
     # usuwanie bardzo małych wykrytych obszarów
@@ -162,18 +161,26 @@ def get_list_of_rectangle_points(regions):
     rect_points = remove_overlapped_regions(rect_points)
     rect_points = sorted(rect_points, key=func) 
     
-#     rect_points = rect_points_sorted_by_distance_to_start_of_horizontal_axis # TODO do usunięcia
+    # jeżeli wykryto jakiś obszar, który waydaje się zbyt szeroki na pojedyczną liczbę
+    # to dzielimy go na tyle części aby razem z pozostałymi obszarami powstało 6 cyfr
+    whole_image_area = image_digits.shape[0]*image_digits.shape[1]
+    rect_points_changed = []
 
-#     l1 = rect_points[0:]
-#     l2 = rect_points[1:]
-#     for reg1, reg2 in zip(l1, l2):
-#         half_diff = int((reg2[0][1] - reg1[1][1])/2)
-#         reg1[1][1] += half_diff
-#         reg2[0][1] -= half_diff
-        
-#     print("liczba wykrytych regionów ostatecznie (cyfr): ", len(rect_points))
-#     print(rect_points)
-    return rect_points
+    for rect_point in rect_points:
+        if func_area([[0, rect_point[0][1]], [image_digits.shape[0], rect_point[1][1]]]) > whole_image_area/4:
+            n_to_6 = 6 - len(rect_points)+1
+            if n_to_6 < 1:
+                break
+            result_dividers = np.linspace(rect_point[0][1], rect_point[1][1], n_to_6+1)
+            result_dividers = [math.ceil(div) for div in result_dividers]
+
+            for d1, d2 in zip(result_dividers[:-1], result_dividers[1:]):
+                rect_points_changed.append([[rect_point[0][0], d1], [rect_point[1][0], d2]])
+        else:
+            rect_points_changed.append(rect_point)
+
+
+    return rect_points_changed
         
 
 def get_two_points_to_create_rectangle_from_region(region):
@@ -255,7 +262,7 @@ def cut_digits_from_index_image(last_word_images, img_name='test', is_grid=True,
 
         regions = get_digits_regions(image_digits)  
 
-        rect_points_sorted_by_distance_to_start_of_horizontal_axis = get_list_of_rectangle_points(regions)
+        rect_points_sorted_by_distance_to_start_of_horizontal_axis = get_list_of_rectangle_points(regions, image_digits)
 
         word_image = color.gray2rgb(word_image)  
         image_digits = util.img_as_ubyte(image_digits)
@@ -271,10 +278,11 @@ def cut_digits_from_index_image(last_word_images, img_name='test', is_grid=True,
             temp_image = color.gray2rgb(temp_image)
         ######################### TESTOWE #########################
 
+        digit_margin = 5
         for index_digit, (start_point, end_point) in enumerate(rect_points_sorted_by_distance_to_start_of_horizontal_axis):           
             # Wycięcie cyfry
             # one_digit =  image_digits[start_point[0]:end_point[0]+1, start_point[1]:end_point[1]+1]
-            one_digit =  image_digits[:, start_point[1]:end_point[1]+1]
+            one_digit =  image_digits[:, max(0, start_point[1]-digit_margin):end_point[1]+1+digit_margin]
             one_digit = scale_digit_image(one_digit, scale=28)
             index_digits_list.append(one_digit)
 
@@ -291,8 +299,9 @@ def cut_digits_from_index_image(last_word_images, img_name='test', is_grid=True,
                 io.imsave(arr=temp_image, fname=save_path_img / '{}.png'.format(i))
                 io.imsave(arr=temp_image, fname=save_path_word / 'index.png')
             ######################### TESTOWE #########################
-         
-        all_indexes_list.append(index_digits_list)
+        
+        if i != 0 and len(index_digits_list) > 3:
+            all_indexes_list.append(index_digits_list)
 
 
     return all_indexes_list
