@@ -6,14 +6,13 @@ from skimage import exposure
 from skimage import color
 from skimage import util
 from skimage import morphology
-from matplotlib import pyplot as plt
 import math
 import numpy as np
 
 # TESTOWE
 from skimage import io
 from skimage import draw
-from matplotlib import pyplot as plt
+# #from matplotlib import pyplot as plt
 
 # rect_points - (start_point, end_point), where p0 is top-left corner, p1 is down-right corner
 def euclidean_distance(p1, p2):
@@ -180,7 +179,7 @@ def get_list_of_rectangle_points(regions, image_digits):
             rect_points_changed.append(rect_point)
 
 
-    return rect_points_changed
+    return len(rect_points), rect_points_changed
         
 
 def get_two_points_to_create_rectangle_from_region(region):
@@ -252,56 +251,68 @@ def cut_digits_from_index_image(last_word_images, img_name='test', is_grid=True,
     
     all_indexes_list = []
     for i, word_image_org in enumerate(last_word_images):
-        # Wczytanie obrazu
-        index_digits_list = []
-        word_image = word_image_org.copy()
-        # word_image = color.rgb2gray(word_image)
-        word_image = filters.gaussian(word_image)
+        try:
+            # Wczytanie obrazu
+            index_digits_list = []
+            word_image = word_image_org.copy()
+            # word_image = color.rgb2gray(word_image)
+            word_image = filters.gaussian(word_image)
 
-        image_digits = get_binary_image_with_digits(word_image, is_grid=is_grid)
+            image_digits = get_binary_image_with_digits(word_image, is_grid=is_grid)
 
-        regions = get_digits_regions(image_digits)  
+            regions = get_digits_regions(image_digits)  
 
-        rect_points_sorted_by_distance_to_start_of_horizontal_axis = get_list_of_rectangle_points(regions, image_digits)
+            n_of_digits_without_dividing, rect_points_sorted_by_distance_to_start_of_horizontal_axis = get_list_of_rectangle_points(regions, image_digits)
 
-        word_image = color.gray2rgb(word_image)  
-        image_digits = util.img_as_ubyte(image_digits)
-        
+            word_image = color.gray2rgb(word_image)  
+            image_digits = util.img_as_ubyte(image_digits)
+            
 
-        ######################### TESTOWE #########################
-        if is_test:
-            save_path_word = save_path_img / str(i)
-            save_path_word.mkdir(parents=True, exist_ok=True)
-
-            temp_image = word_image_org.copy()
-            temp_image = util.img_as_ubyte(temp_image)
-            temp_image = color.gray2rgb(temp_image)
-        ######################### TESTOWE #########################
-
-        digit_margin = 5
-        for index_digit, (start_point, end_point) in enumerate(rect_points_sorted_by_distance_to_start_of_horizontal_axis):           
-            # Wycięcie cyfry
-            # one_digit =  image_digits[start_point[0]:end_point[0]+1, start_point[1]:end_point[1]+1]
-            one_digit =  image_digits[:, max(0, start_point[1]-digit_margin):end_point[1]+1+digit_margin]
-            one_digit = scale_digit_image(one_digit, scale=28)
-            index_digits_list.append(one_digit)
-
-
-            ######################### TESTOWE #########################    
-            if is_test:    
-                one_digit = filters.gaussian(one_digit)
-                one_digit = util.img_as_ubyte(one_digit)
-                io.imsave(arr=one_digit, fname=save_path_word / '{}.png'.format(index_digit))
-
-                # Narysowanie prostokąta wokół cyfry.
-                rr, cc = draw.rectangle_perimeter(start_point, end_point, shape=temp_image.shape)         
-                temp_image[rr, cc] = (255,0+index_digit*30,0+index_digit*30)
-                io.imsave(arr=temp_image, fname=save_path_img / '{}.png'.format(i))
-                io.imsave(arr=temp_image, fname=save_path_word / 'index.png')
             ######################### TESTOWE #########################
-        
-        if i != 0 and len(index_digits_list) > 3:
-            all_indexes_list.append(index_digits_list)
+            if is_test:
+                save_path_word = save_path_img / str(i)
+                save_path_word.mkdir(parents=True, exist_ok=True)
+
+                temp_image = word_image_org.copy()
+                temp_image = util.img_as_ubyte(temp_image)
+                temp_image = color.gray2rgb(temp_image)
+            ######################### TESTOWE #########################
+
+            digit_margin = 5
+            for index_digit, (start_point, end_point) in enumerate(rect_points_sorted_by_distance_to_start_of_horizontal_axis):           
+                # Wycięcie cyfry
+                # one_digit =  image_digits[start_point[0]:end_point[0]+1, start_point[1]:end_point[1]+1]
+                one_digit =  image_digits[:, max(0, start_point[1]-digit_margin):end_point[1]+1+digit_margin]
+                one_digit = scale_digit_image(one_digit, scale=28)
+                index_digits_list.append(one_digit)
+
+
+                ######################### TESTOWE #########################    
+                if is_test:    
+                    one_digit = filters.gaussian(one_digit)
+                    one_digit = util.img_as_ubyte(one_digit)
+                    io.imsave(arr=one_digit, fname=save_path_word / '{}.png'.format(index_digit))
+
+                    # Narysowanie prostokąta wokół cyfry.
+                    rr, cc = draw.rectangle_perimeter(start_point, end_point, shape=temp_image.shape)         
+                    temp_image[rr, cc] = (255,0+index_digit*30,0+index_digit*30)
+                    io.imsave(arr=temp_image, fname=save_path_img / '{}.png'.format(i))
+                    io.imsave(arr=temp_image, fname=save_path_word / 'index.png')
+                ######################### TESTOWE #########################
+            
+            # if i != 0 and len(index_digits_list) > 3:
+            #     all_indexes_list.append(index_digits_list)
+
+            if not(i == 0 and n_of_digits_without_dividing < 4):
+                all_indexes_list.append(index_digits_list)
+
+
+        except Exception as e:
+            print("Indeks dla wiersza {}. nie posiada wyników z powodu błędu.".format(i))
+            continue
+            # traceback.print_exc()
+            # sys.exc_info()
+
 
 
     return all_indexes_list

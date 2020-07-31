@@ -1,5 +1,5 @@
 import cv2 
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 from pathlib import Path
 from skimage import filters,exposure,img_as_ubyte
 import numpy as np
@@ -9,7 +9,7 @@ from skimage.filters import threshold_otsu
 from skimage.transform import hough_line, hough_line_peaks
 from skimage.feature import canny
 from skimage import data
-from matplotlib import cm
+#from matplotlib import cm
 from skimage.transform import probabilistic_hough_line,rotate
 from skimage import util
 # TESTOWE
@@ -101,7 +101,7 @@ def sobel_get_img_from_background(img, img_name='test', is_test=False):
     # plt.gcf().set_size_inches(11, 7)
     # plt.imshow(opening2,cmap = 'gray'),plt.title('opening2')
 
-    plt.show()
+    # plt.show()
     imgg = skimage.filters.gaussian(opening2) 
     opening3 = cv2.morphologyEx(imgg, cv2.MORPH_OPEN, kernelgo2,iterations = 4)
     imgg2 = skimage.filters.gaussian(opening3) 

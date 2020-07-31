@@ -3,7 +3,7 @@ from pathlib import Path
 from skimage import io
 from skimage import measure
 from skimage import morphology
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 from skimage import util
 from skimage import transform
 from skimage import filters

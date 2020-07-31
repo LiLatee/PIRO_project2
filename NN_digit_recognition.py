@@ -1,4 +1,4 @@
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 import keras
 from keras.utils import to_categorical
 from keras import layers, models
@@ -35,6 +35,8 @@ class CNN_model:
         self.model.add(layers.Dense(256, activation="relu"))
         self.model.add(layers.Dropout(0.5))
         self.model.add(layers.Dense(10, activation="softmax"))
+
+        self.load_model()
         
     def learning(self,X_train, X_valid, y_train, y_valid,model_name):
         learning_rate_reduction = callbacks.ReduceLROnPlateau(monitor='val_acc', patience=3, verbose=1, factor=0.5, min_lr=0.00001)
