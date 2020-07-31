@@ -12,7 +12,7 @@ import numpy as np
 # TESTOWE
 from skimage import io
 from skimage import draw
-# #from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt
 
 # rect_points - (start_point, end_point), where p0 is top-left corner, p1 is down-right corner
 def euclidean_distance(p1, p2):
@@ -29,14 +29,12 @@ def sort_regions_by_area(regions, descending=True):
 def get_binary_image_with_digits(word_image, is_grid=True):
     # Multio-Otsu dzieli obraz na 3 klasy o różnych jasnościach.
     n_classes = 4 if is_grid else 2 # TODO
-    n_classes = 4
     
     thresholds = filters.threshold_multiotsu(word_image, classes=n_classes)
 
     # Regions - to obraz, który ma wartości od 0 do 2. 
     # Wartość odpowiada regionowi, do którego należey dany piksel.
     otsu_regions = np.digitize(word_image, bins=thresholds)
-
 
     # Jeden z wykrytych regionów odpowiadał w większości jasności cyfr..
     # Region trzeba traktować jako jakiś przedział wartości jasności w obrazie.
@@ -67,7 +65,7 @@ def get_digits_regions(image_digits):
     # usuwanie regionów, które są zbyt szerokie na liczbę (usuwa wykryte poziome linie kratki)
     width = image_digits.shape[1] 
     regions_width = [(np.max(reg.coords[:, 1]) - np.min(reg.coords[:, 1])) for reg in regions]
-    regions = [reg for i, reg in enumerate(regions) if regions_width[i] < width/3]
+    # regions = [reg for i, reg in enumerate(regions) if regions_width[i] < width/3] # TODO skoemntowane, sprawdzić jak działa
 
     
     
@@ -95,8 +93,9 @@ def remove_overlapped_regions(regions_as_rect_points):
         reg1_start_point, reg1_end_point = reg1
         reg2_start_point, reg2_end_point = reg2
         
-        diff = reg2_start_point[1] - reg1_end_point[1] 
-        if diff < 0: # jeżeli regiony oddalone o mniej niż 0 pikseli to połącz w jeden
+        diff_height = reg2_start_point[0] - reg1_end_point[0] 
+        diff_width = reg2_start_point[1] - reg1_end_point[1] 
+        if diff_width < 1 and is_first_above_second_or_vice_versa(reg1, reg2): # jeżeli regiony oddalone o mniej niż 0 pikseli to połącz w jeden - jeden nad drugim
             new_start_point, new_end_point = combine_two_overlapping_regions(reg1, reg2)
                 
             valid_regions.append([new_start_point, new_end_point])              
@@ -109,6 +108,15 @@ def remove_overlapped_regions(regions_as_rect_points):
             valid_regions.append(reg)
             
     return valid_regions
+
+def is_first_above_second_or_vice_versa(rect_point_1, rect_point_2):
+    r1p1, r1p2 = rect_point_1
+    r2p1, r2p2 = rect_point_2
+
+    first_above_second = r1p1[0] < r2p1[0] and r1p2[0] < r2p2[0]
+    second_above_first = r1p1[0] > r2p1[0] and r1p2[0] > r2p2[0]
+    return first_above_second or second_above_first
+
 
 def combine_two_overlapping_regions(reg1, reg2):
     reg1_start_point, reg1_end_point = reg1
@@ -154,20 +162,24 @@ def get_list_of_rectangle_points(regions, image_digits):
     def func(points):
         p0, p1 = points
         return (p0[1] + p1[1])/2   
-    rect_points_sorted_by_distance_to_start_of_horizontal_axis = sorted(rect_points, key=func)    
+    rect_points_sorted_by_distance_to_start_of_horizontal_axis = sorted(rect_points, key=func)
+   
     rect_points = remove_overlapped_regions(rect_points_sorted_by_distance_to_start_of_horizontal_axis)
     rect_points = sorted(rect_points, key=func) 
+
     rect_points = remove_overlapped_regions(rect_points)
     rect_points = sorted(rect_points, key=func) 
     
-    # jeżeli wykryto jakiś obszar, który waydaje się zbyt szeroki na pojedyczną liczbę
+    # jeżeli wykryto jakiś obszar, który wyddaje się zbyt szeroki na pojedyczną liczbę
     # to dzielimy go na tyle części aby razem z pozostałymi obszarami powstało 6 cyfr
     whole_image_area = image_digits.shape[0]*image_digits.shape[1]
     rect_points_changed = []
 
+
     for rect_point in rect_points:
-        if func_area([[0, rect_point[0][1]], [image_digits.shape[0], rect_point[1][1]]]) > whole_image_area/4:
-            n_to_6 = 6 - len(rect_points)+1
+        rect_area = func_area([[0, rect_point[0][1]], [image_digits.shape[0], rect_point[1][1]]])
+        if rect_area > whole_image_area/4:
+            n_to_6 = 6 - len(rect_points) + 1
             if n_to_6 < 1:
                 break
             result_dividers = np.linspace(rect_point[0][1], rect_point[1][1], n_to_6+1)
@@ -177,7 +189,6 @@ def get_list_of_rectangle_points(regions, image_digits):
                 rect_points_changed.append([[rect_point[0][0], d1], [rect_point[1][0], d2]])
         else:
             rect_points_changed.append(rect_point)
-
 
     return len(rect_points), rect_points_changed
         
@@ -261,9 +272,7 @@ def cut_digits_from_index_image(last_word_images, img_name='test', is_grid=True,
             image_digits = get_binary_image_with_digits(word_image, is_grid=is_grid)
 
             regions = get_digits_regions(image_digits)  
-
             n_of_digits_without_dividing, rect_points_sorted_by_distance_to_start_of_horizontal_axis = get_list_of_rectangle_points(regions, image_digits)
-
             word_image = color.gray2rgb(word_image)  
             image_digits = util.img_as_ubyte(image_digits)
             
@@ -303,8 +312,12 @@ def cut_digits_from_index_image(last_word_images, img_name='test', is_grid=True,
             # if i != 0 and len(index_digits_list) > 3:
             #     all_indexes_list.append(index_digits_list)
 
-            if not(i == 0 and n_of_digits_without_dividing < 4):
+            if ((i == 0) and (n_of_digits_without_dividing < 5)) or len(index_digits_list) < 3:
+                pass
+            else:
                 all_indexes_list.append(index_digits_list)
+            # if not(i == 0 and n_of_digits_without_dividing < 4):
+            #     all_indexes_list.append(index_digits_list)
 
 
         except Exception as e:

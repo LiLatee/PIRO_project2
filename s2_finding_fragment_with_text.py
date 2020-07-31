@@ -6,6 +6,8 @@ import numpy as np
 from pathlib import Path
 from skimage import io
 from skimage import util
+from skimage import draw
+from skimage import color
 #from matplotlib import pyplot as plt
 
 
@@ -96,9 +98,39 @@ def detect_fragment_with_text(img, img_raw, img_name="test", is_test=False):
     regions_centroids = np.array([reg.centroid for reg in regions])
     mean_centroid = (np.mean(regions_centroids[:, 0]), np.mean(regions_centroids[:, 1]))
 
+
+    ######################### TESTOWE #########################
+    if is_test:
+        img_copy = img.copy()
+        img_copy = color.gray2rgb(img_copy)
+        for centroid in regions_centroids:
+            rr, cc = draw.circle(centroid[0], centroid[1], 5)
+            rr = np.clip(rr, 0, img_copy.shape[0]-1)
+            cc = np.clip(rr, 0, img_copy.shape[1]-1)
+            img_copy[rr, cc] = (255, 0, 0)
+
+        save_path = Path('data/partial_results/2/1_centroidy')
+        save_path.mkdir(parents=True, exist_ok=True)
+        io.imsave(arr=util.img_as_ubyte(img_copy), fname=save_path / (img_name+'.png'))
+    ######################### TESTOWE #########################
+
+
     # Usuwamy obszary, który centoridy zbyt mocno odstają. Dwukrotnie.
     data = remove_outliers_centroids(regions_centroids, quantile_height=0.95, quantile_width=0.9)
     data = remove_outliers_centroids(data, quantile_height=0.95, quantile_width=0.95)
+
+    ######################### TESTOWE #########################
+    if is_test:
+        img_copy = img.copy()
+        img_copy = color.gray2rgb(img_copy)
+        for centorid in data:
+            rr, cc = draw.circle(centorid[0], centorid[1], 5)
+            img_copy[rr, cc] = (255, 0, 0)
+
+        save_path = Path('data/partial_results/2/2_centroidy_odszumione')
+        save_path.mkdir(parents=True, exist_ok=True)
+        io.imsave(arr=util.img_as_ubyte(img_copy), fname=save_path / (img_name+'.png'))
+    ######################### TESTOWE #########################
 
     # Z pozostałych centoridów tworzymy prostokąt troche powiększony.
     height_min = np.min(data[:, 0])
@@ -126,7 +158,7 @@ def detect_fragment_with_text(img, img_raw, img_name="test", is_test=False):
 
     ######################### TESTOWE #########################
     if is_test:
-        save_path = Path('data/partial_results/2_wyciete_fragmenty')
+        save_path = Path('data/partial_results/2/3_wyciete_fragmenty')
         save_path.mkdir(parents=True, exist_ok=True)
         io.imsave(arr=util.img_as_ubyte(img_removed_background), fname=save_path / (img_name+'.png'))
     ######################### TESTOWE #########################

@@ -52,7 +52,6 @@ def detect_lines_of_text(img):
     img = thresholding(img)
     img = morphology.erosion(img, morphology.disk(5))
 
-
     sum_of_rows = np.sum(img, axis=1) 
     mean_row_value = np.mean(sum_of_rows)
 
@@ -155,9 +154,16 @@ def find_closest_region(all_regions, region):
     return closest_region
 
 
-def detect_words_in_line(image_result, image_binary, coords_of_line, row_intensity=255, fragment=None):
+def detect_words_in_line(image_result, image_binary, coords_of_line, row_intensity=255, img_name="test", row_number=0, fragment=None, is_test=False):
     # wycinamy kawałek obrazu będącego linią tekstu i obracamy go (.T)
     line_img = get_slice_of_image_with_specific_coords(image=image_binary, coords=coords_of_line).T
+
+    ######################### TESTOWE #########################
+    if is_test:
+        save_path = Path('data/partial_results/3/2_wyciete_wiersze/{}'.format(img_name))
+        save_path.mkdir(parents=True, exist_ok=True)
+        io.imsave(arr=util.img_as_ubyte(line_img.T), fname=save_path / '{}.png'.format(row_number))
+    ######################### TESTOWE #########################
 
     line_img = morphology.dilation(line_img, morphology.disk(13))
     
@@ -171,6 +177,13 @@ def detect_words_in_line(image_result, image_binary, coords_of_line, row_intensi
             line_img[i:i+1, :] = row_intensity
     # znowu obracamy, tekst biegnie od lewej do prawej
     line_img = line_img.T
+
+    ######################### TESTOWE #########################
+    if is_test:
+        save_path = Path('data/partial_results/3/3_wyciete_wiersze_wykryte_obszary_slow/{}'.format(img_name))
+        save_path.mkdir(parents=True, exist_ok=True)
+        io.imsave(arr=util.img_as_ubyte(line_img), fname=save_path / '{}.png'.format(row_number))
+    ######################### TESTOWE #########################
 
     # wykrywamy regiony, czyli pojedynczy region to powinien być jeden wyraz
     label_line_img = measure.label(line_img)
@@ -250,7 +263,10 @@ def detect_fragments_with_words(img, img_raw, gray_fragment, rotation, reference
                                                                         image_binary=img, 
                                                                         coords_of_line=region.coords, 
                                                                         row_intensity=((i*1)%256),
-                                                                        fragment=fragment)
+                                                                        img_name=img_name, 
+                                                                        row_number=i,
+                                                                        fragment=fragment,
+                                                                        is_test=is_test)
         
         
         # last_word_coords = np.array([[el[0]+reference_point_to_img_raw[0],el[1]+reference_point_to_img_raw[1]] for el in last_word_coords])
@@ -285,12 +301,12 @@ def detect_fragments_with_words(img, img_raw, gray_fragment, rotation, reference
 
     ######################### TESTOWE #########################
     if is_test:
-        save_path = Path('data/partial_results/3/3_dzielenie_wyrazow/')
+        save_path = Path('data/partial_results/3/4_dzielenie_wyrazow/')
         save_path.mkdir(parents=True, exist_ok=True)
         io.imsave(arr=fragment, fname=save_path / '{}.png'.format(img_name))
 
 
-        save_path = Path('data/partial_results/3/2_wyciete_indeksy/{}'.format(img_name))
+        save_path = Path('data/partial_results/3/5_wyciete_indeksy/{}'.format(img_name))
         save_path.mkdir(parents=True, exist_ok=True)
         for i, img in enumerate(last_word_images):  
             img = util.img_as_ubyte(img)

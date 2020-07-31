@@ -42,9 +42,13 @@ def main(input_dir, number_of_img, output_dir, is_test=False):
         try:
             # raise Exception("XD")
 
-            image_path = Path(input_dir/"{0}.png".format(image)) # TODO DO USUNIĘCIA
-            print("############################## {} ##############################".format(image_path))
+            image_path = Path(input_dir/"{0}.png".format(image)) 
             image_name = image
+            print("############################## {} ##############################".format(image_path))
+            
+            # image_name = 19  # TODO DO USUNIĘCIA
+            # image_path = Path(input_dir/"{0}.png".format(image_name)) # TODO DO USUNIĘCIA
+            
             img_out_path_words = output_dir/"{0}-wyrazy.png".format(image_name)
             out_path_indexes = output_dir/"{0}-indeksy.txt".format(image_name)
 
@@ -52,7 +56,7 @@ def main(input_dir, number_of_img, output_dir, is_test=False):
             # Zaciągnięcie  obrazu z pliku 
             raw_img = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
             # Wykrycie 
-            words_areas = get_words_from_base_img(raw_img.copy())
+            words_areas = get_words_from_base_img(raw_img.copy(), img_name=str(image_name), is_test=is_test)
             # plt.gcf().set_size_inches(30, 20)
             # plt.imshow(words_areas,cmap = 'gray'),plt.title('??')
             # plt.show() 
@@ -87,6 +91,7 @@ def main(input_dir, number_of_img, output_dir, is_test=False):
             # predict_and_save(all_indexes_list,k)
 
             analyze_and_predict(all_indexes_list, out_path_indexes,cnn_agent)
+            # break
         except Exception as e:
             print("Obraz {}.png nie posiada wyników z powodu błędu.".format(image))
             traceback.print_exc()
@@ -97,7 +102,7 @@ def main(input_dir, number_of_img, output_dir, is_test=False):
 
 
 if __name__ == "__main__":
-    is_test = True
+    is_test = False
 
     input_dir = ''
     number_of_img = 0

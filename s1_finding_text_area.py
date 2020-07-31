@@ -12,13 +12,15 @@ from skimage import data
 #from matplotlib import cm
 from skimage.transform import probabilistic_hough_line,rotate
 from skimage import util
+
 # TESTOWE
 from skimage import io
+# from matplotlib import pyplot as plt
 
 
 
 
-def get_words_from_base_img(img):
+def get_words_from_base_img(img, img_name='test', is_test=False):
     
     kernel = np.ones((8,8),np.uint8)
     gradient = cv2.morphologyEx(img, cv2.MORPH_GRADIENT, kernel)
@@ -64,6 +66,14 @@ def get_words_from_base_img(img):
 #     plt.imshow(edges,cmap = 'gray'),plt.title('edges')
 # #     plt.savefig('22_better.jpg')
 #     plt.show()
+
+    ######################### TESTOWE #########################
+    if is_test:
+        save_path = Path('data/partial_results/1/1_kontury_wyrazow')
+        save_path.mkdir(parents=True, exist_ok=True)
+        io.imsave(arr=util.img_as_ubyte(edges), fname=save_path / (img_name+'.png'))
+    ######################### TESTOWE #########################
+
     return edges
 
 def trh(img):
