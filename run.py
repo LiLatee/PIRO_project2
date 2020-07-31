@@ -44,10 +44,12 @@ def main(input_dir, number_of_img, output_dir, is_test=False):
 
             image_path = Path(input_dir/"{0}.png".format(image)) 
             image_name = image
-            print("############################## {} ##############################".format(image_path))
             
-            # image_name = 19  # TODO DO USUNIĘCIA
+            
+            # image_name = 28  # TODO DO USUNIĘCIA
             # image_path = Path(input_dir/"{0}.png".format(image_name)) # TODO DO USUNIĘCIA
+
+            print("############################## {} ##############################".format(image_path))
             
             img_out_path_words = output_dir/"{0}-wyrazy.png".format(image_name)
             out_path_indexes = output_dir/"{0}-indeksy.txt".format(image_name)

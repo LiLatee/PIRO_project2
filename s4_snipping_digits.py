@@ -41,7 +41,7 @@ def get_binary_image_with_digits(word_image, is_grid=True):
     # image_removed_otsu_region = word_image*util.invert((otsu_regions == 1))
     image_digits = (otsu_regions==0)
 
-    # io.imshow(otsu_regions)
+    # io.imshow(image_digits)
     # plt.show()
 
     # Po ponownym wykryciu regionów, jeden z nich pasował do cyfr więc użyłem go licząc, że są to cyfry.
@@ -78,7 +78,7 @@ def remove_overlapped_regions(regions_as_rect_points):
     regions_list_with_key = []
     for i, reg in enumerate(regions_as_rect_points):
         regions_list_with_key.append([i, reg])
-    
+        
     valid_regions = []
     invalid_regions_keys = []
     l1 = regions_list_with_key[0:]
@@ -95,7 +95,7 @@ def remove_overlapped_regions(regions_as_rect_points):
         
         diff_height = reg2_start_point[0] - reg1_end_point[0] 
         diff_width = reg2_start_point[1] - reg1_end_point[1] 
-        if diff_width < 1 and is_first_above_second_or_vice_versa(reg1, reg2): # jeżeli regiony oddalone o mniej niż 0 pikseli to połącz w jeden - jeden nad drugim
+        if (diff_width < 1 and is_first_above_second_or_vice_versa(reg1, reg2)) or is_first_in_second_or_vice_versa(reg1, reg2): # jeżeli regiony oddalone o mniej niż 0 pikseli to połącz w jeden - jeden nad drugim
             new_start_point, new_end_point = combine_two_overlapping_regions(reg1, reg2)
                 
             valid_regions.append([new_start_point, new_end_point])              
@@ -109,6 +109,8 @@ def remove_overlapped_regions(regions_as_rect_points):
             
     return valid_regions
 
+
+
 def is_first_above_second_or_vice_versa(rect_point_1, rect_point_2):
     r1p1, r1p2 = rect_point_1
     r2p1, r2p2 = rect_point_2
@@ -117,6 +119,13 @@ def is_first_above_second_or_vice_versa(rect_point_1, rect_point_2):
     second_above_first = r1p1[0] > r2p1[0] and r1p2[0] > r2p2[0]
     return first_above_second or second_above_first
 
+def is_first_in_second_or_vice_versa(rect_point_1, rect_point_2):
+    r1p1, r1p2 = rect_point_1
+    r2p1, r2p2 = rect_point_2
+
+    first_in_second = r1p1[0] < r2p1[0] and r1p2[0] > r2p2[0] and r1p1[1] < r2p1[1] and r1p2[1] > r2p2[1]
+    second_in_first = r1p1[0] > r2p1[0] and r1p2[0] < r2p2[0] and r1p1[1] > r2p1[1] and r1p2[1] < r2p2[1]
+    return first_in_second or second_in_first
 
 def combine_two_overlapping_regions(reg1, reg2):
     reg1_start_point, reg1_end_point = reg1
@@ -167,8 +176,8 @@ def get_list_of_rectangle_points(regions, image_digits):
     rect_points = remove_overlapped_regions(rect_points_sorted_by_distance_to_start_of_horizontal_axis)
     rect_points = sorted(rect_points, key=func) 
 
-    rect_points = remove_overlapped_regions(rect_points)
-    rect_points = sorted(rect_points, key=func) 
+    # rect_points = remove_overlapped_regions(rect_points)
+    # rect_points = sorted(rect_points, key=func) 
     
     # jeżeli wykryto jakiś obszar, który wyddaje się zbyt szeroki na pojedyczną liczbę
     # to dzielimy go na tyle części aby razem z pozostałymi obszarami powstało 6 cyfr
